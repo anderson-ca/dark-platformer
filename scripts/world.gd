@@ -9,6 +9,9 @@ const GOAL_COLOR := Color(0.333, 0.8, 0.333)
 var current_room_index: int = 0
 var room_geometry: Node2D
 var props_container: Node2D
+var bg_container: Node2D
+var mg_container: Node2D
+var fg_container: Node2D
 var hud_node: Node
 
 
@@ -26,6 +29,21 @@ func _ready() -> void:
 	props_container = Node2D.new()
 	props_container.name = "Props"
 	add_child(props_container)
+
+	bg_container = Node2D.new()
+	bg_container.name = "Background"
+	bg_container.z_index = -1
+	add_child(bg_container)
+
+	mg_container = Node2D.new()
+	mg_container.name = "Midground"
+	mg_container.z_index = 0
+	add_child(mg_container)
+
+	fg_container = Node2D.new()
+	fg_container.name = "Foreground"
+	fg_container.z_index = 2
+	add_child(fg_container)
 
 	# Create HUD
 	var hud_script := load("res://scripts/hud.gd")
