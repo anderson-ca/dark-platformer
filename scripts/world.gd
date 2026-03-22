@@ -11,10 +11,6 @@ var room_geometry: Node2D
 var props_container: Node2D
 var hud_node: Node
 
-# Lighting references for pulsing
-var player_glow: PointLight2D
-var _light_tex: Texture2D
-var _time: float = 0.0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
@@ -37,37 +33,6 @@ func _ready() -> void:
 	hud_node.set_script(hud_script)
 	hud_node.name = "HUD"
 	add_child(hud_node)
-
-	# Darkness overlay — deeper darkness for ominous atmosphere
-	var canvas_mod := CanvasModulate.new()
-	canvas_mod.name = "DarknessOverlay"
-	canvas_mod.color = Color(0.08, 0.09, 0.14, 1.0)
-	add_child(canvas_mod)
-
-	# Shared radial light texture — programmatic ImageTexture (GL Compat safe)
-	var light_size := 256
-	var light_img := Image.create(light_size, light_size, false, Image.FORMAT_RGBA8)
-	var light_center := Vector2(127.5, 127.5)
-	var light_radius := 128.0
-	for ly in range(light_size):
-		for lx in range(light_size):
-			var d := Vector2(lx, ly).distance_to(light_center) / light_radius
-			var a := clampf(1.0 - d, 0.0, 1.0)
-			a *= a  # quadratic falloff
-			light_img.set_pixel(lx, ly, Color(1, 1, 1, a))
-	_light_tex = ImageTexture.create_from_image(light_img)
-
-	# --- Player glow — warm amber spotlight ---
-	player_glow = PointLight2D.new()
-	player_glow.name = "PlayerGlow"
-	player_glow.color = Color(1.0, 0.85, 0.6, 1.0)
-	player_glow.energy = 1.8
-	player_glow.blend_mode = PointLight2D.BLEND_MODE_ADD
-	player_glow.shadow_enabled = false
-	player_glow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	player_glow.texture_scale = 1.0
-	player_glow.texture = _light_tex
-	player.add_child(player_glow)
 
 	# === WEATHER SYSTEM ===
 
@@ -102,28 +67,31 @@ func _ready() -> void:
 	load_room(0)
 
 
-func _process(delta: float) -> void:
-	_time += delta
-
-	# Player glow pulse — gentle sin wave between 1.6 and 2.0 over ~2s
-	player_glow.energy = 1.8 + 0.2 * sin(_time * PI)
-
-
 func _setup_parallax_background() -> void:
 	var bg := ParallaxBackground.new()
 	bg.name = "ParallaxBackground"
 	add_child(bg)
 
-	# Scale to fill 450px height from 384px source
-	var bg_scale := 450.0 / 384.0
-	var scaled_width := 576.0 * bg_scale
+	# Scale to fill 450px viewport height from 320px source images
+	var bg_scale := 450.0 / 320.0
+	var scaled_width := 640.0 * bg_scale
 
+	var P := "res://assets/backgrounds/dark_forest/"
+
+	# Layers ordered back-to-front: 0 (sky) through 13 (foreground frame)
+	# motion_scale.x spreads evenly from 0.0 (static sky) to 1.05 (foreground)
 	var layers := [
-		["sky",         "res://assets/backgrounds/bg.png",  0.0],
-		["far_trees",   "res://assets/backgrounds/bg1.png", 0.1],
-		["mid_trees",   "res://assets/backgrounds/bg2.png", 0.2],
-		["near_trees",  "res://assets/backgrounds/bg3.png", 0.35],
-		["foreground",  "res://assets/backgrounds/bg4.png", 0.5],
+		["bg_sky",      P + "0.png",              0.0],
+		["bg_far_1",    P + "1.png",              0.1],
+		["bg_far_2",    P + "2.png",              0.2],
+		["bg_mid_1",    P + "3.png",              0.3],
+		["bg_mid_2",    P + "4.png",              0.4],
+		["bg_mid_3",    P + "5.png",              0.5],
+		["bg_near_1",   P + "6.png",              0.6],
+		["bg_near_2",   P + "7.png",              0.7],
+		["bg_near_3",   P + "8.png",              0.8],
+		["bg_closest",  P + "9.png",              0.9],
+		["bg_debris",   P + "12.png",             1.0],
 	]
 
 	for layer_def in layers:
@@ -141,7 +109,43 @@ func _setup_parallax_background() -> void:
 		sprite.texture = load(tex_path) as Texture2D
 		sprite.centered = false
 		sprite.scale = Vector2(bg_scale, bg_scale)
+		sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 		layer.add_child(sprite)
+
+	# Floor layer — world-space, locked to camera at motion_scale (1,1)
+	# so it feels like solid ground. Positioned so the green vegetation
+	# aligns with the collision surface at y=640.
+	var floor_layer := ParallaxLayer.new()
+	floor_layer.name = "bg_floor"
+	floor_layer.motion_scale = Vector2(1.0, 1.0)
+	floor_layer.motion_mirroring = Vector2(scaled_width, 0.0)
+	bg.add_child(floor_layer)
+
+	var floor_sprite := Sprite2D.new()
+	floor_sprite.texture = load(P + "10-(floor).png") as Texture2D
+	floor_sprite.centered = false
+	floor_sprite.scale = Vector2(bg_scale, bg_scale)
+	floor_sprite.position.y = 457.0  # 640 - (130 * bg_scale) — aligns vegetation with ground
+	floor_sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	floor_layer.add_child(floor_sprite)
+
+	# Light rays overlay — additive blend, slow drift, low opacity
+	var light_layer := ParallaxLayer.new()
+	light_layer.name = "bg_light"
+	light_layer.motion_scale = Vector2(0.3, 0.0)
+	light_layer.motion_mirroring = Vector2(scaled_width, 0.0)
+	bg.add_child(light_layer)
+
+	var light_sprite := Sprite2D.new()
+	light_sprite.texture = load(P + "11---light.png") as Texture2D
+	light_sprite.centered = false
+	light_sprite.scale = Vector2(bg_scale, bg_scale)
+	light_sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	light_sprite.modulate = Color(1.0, 1.0, 1.0, 0.15)
+	var light_mat := CanvasItemMaterial.new()
+	light_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	light_sprite.material = light_mat
+	light_layer.add_child(light_sprite)
 
 
 func load_room(index: int) -> void:
@@ -203,20 +207,9 @@ func load_room(index: int) -> void:
 
 
 func _setup_room1_props() -> void:
-	var ground_y := 640.0
-
-	# =====================================================================
-	# GROUND — simple dark ColorRect covering the ground collision area
-	# =====================================================================
-	var ground_rect := ColorRect.new()
-	ground_rect.name = "Ground"
-	ground_rect.position = Vector2(0, ground_y)
-	ground_rect.size = Vector2(6600, 80)
-	ground_rect.color = Color(0.094, 0.059, 0.024, 1.0)
-	ground_rect.z_index = -2
-	room_geometry.add_child(ground_rect)
-
-	# (All props, lights, campfire, silhouettes removed — clean slate)
+	# Ground ColorRect removed — parallax floor layer (10-(floor).png) serves as visual ground.
+	# Collision StaticBody2D at y=640 is created by _create_solid() from room data.
+	pass
 
 
 func _create_solid(x: float, y: float, w: float, h: float) -> void:

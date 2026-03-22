@@ -56,25 +56,24 @@ var wall_dir: float = 0.0
 # Raw input tracking
 var _key_left: bool = false
 var _key_right: bool = false
-var _key_jump: bool = false
 var _key_jump_just: bool = false
 var _key_jump_released: bool = false
 var _key_dash_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
-# Dust particles
-var _dust_run: CPUParticles2D
-var _dust_land: CPUParticles2D
-var _dust_wall: CPUParticles2D
-var _dust_dash: CPUParticles2D
+# Dust animated sprites
+var _dust_run: AnimatedSprite2D
+var _dust_land: AnimatedSprite2D
+var _dust_wall: AnimatedSprite2D
+var _dust_dash: AnimatedSprite2D
 var _was_on_floor: bool = false
 var _was_dashing: bool = false
 
 
 func _ready() -> void:
 	_setup_sprite_frames()
-	_setup_dust_particles()
+	_setup_dust_sprites()
 
 
 func _setup_sprite_frames() -> void:
@@ -124,126 +123,65 @@ func _setup_sprite_frames() -> void:
 	animated_sprite.play("idle")
 
 
-func _setup_dust_particles() -> void:
-	# Angular dust texture — 4x2 elongated rectangle, not a square blob
-	var dust_img := Image.create(4, 2, false, Image.FORMAT_RGBA8)
-	dust_img.fill(Color.WHITE)
-	var dust_tex := ImageTexture.create_from_image(dust_img)
-
+func _setup_dust_sprites() -> void:
+	var E := "res://assets/effects/"
 	var feet_y := 9.0  # collision bottom: center(-1) + half-height(10)
 
-	# Shared scale curve: starts full, shrinks to nothing (crisp pop then vanish)
-	var shrink_curve := Curve.new()
-	shrink_curve.add_point(Vector2(0.0, 1.0))
-	shrink_curve.add_point(Vector2(0.4, 0.8))
-	shrink_curve.add_point(Vector2(1.0, 0.0))
+	# Helper: build a SpriteFrames from a 576x64 horizontal strip (9 frames at 64x64)
+	var make_dust_frames := func(path: String, anim_name: String, fps: float, loop: bool) -> SpriteFrames:
+		var sf := SpriteFrames.new()
+		if sf.has_animation("default"):
+			sf.remove_animation("default")
+		sf.add_animation(anim_name)
+		sf.set_animation_speed(anim_name, fps)
+		sf.set_animation_loop(anim_name, loop)
+		var tex := load(path) as Texture2D
+		for i in range(9):
+			var atlas := AtlasTexture.new()
+			atlas.atlas = tex
+			atlas.region = Rect2(i * 64, 0, 64, 64)
+			sf.add_frame(anim_name, atlas)
+		return sf
 
-	# Shared color ramp: light grey, sharp alpha fade at end
-	var dust_gradient := Gradient.new()
-	dust_gradient.set_offset(0, 0.0)
-	dust_gradient.set_color(0, Color(0.85, 0.85, 0.85, 0.7))
-	dust_gradient.set_offset(1, 1.0)
-	dust_gradient.set_color(1, Color(0.85, 0.85, 0.85, 0.0))
+	# Helper: create a dust AnimatedSprite2D with common settings
+	var make_dust_sprite := func(node_name: String, sf: SpriteFrames, pos: Vector2) -> AnimatedSprite2D:
+		var sprite := AnimatedSprite2D.new()
+		sprite.name = node_name
+		sprite.sprite_frames = sf
+		sprite.centered = true
+		sprite.position = pos
+		sprite.z_index = -1
+		sprite.scale = Vector2(0.5, 0.5)
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.visible = false
+		add_child(sprite)
+		return sprite
 
-	# Brighter ramp for land burst
-	var land_gradient := Gradient.new()
-	land_gradient.set_offset(0, 0.0)
-	land_gradient.set_color(0, Color(0.85, 0.85, 0.85, 0.8))
-	land_gradient.set_offset(1, 1.0)
-	land_gradient.set_color(1, Color(0.85, 0.85, 0.85, 0.0))
+	# 1. Run dust — looping, at feet, 12 fps
+	var run_sf: SpriteFrames = make_dust_frames.call(E + "run_dust.png", "run", 12.0, true)
+	_dust_run = make_dust_sprite.call("DustRun", run_sf, Vector2(0, feet_y))
 
-	# --- 1. Run dust — crisp puffs, few particles, fast fade ---
-	_dust_run = CPUParticles2D.new()
-	_dust_run.name = "DustRun"
-	_dust_run.emitting = false
-	_dust_run.amount = 4
-	_dust_run.lifetime = 0.2
-	_dust_run.explosiveness = 0.3
-	_dust_run.texture = dust_tex
-	_dust_run.direction = Vector2(0, -0.5)
-	_dust_run.spread = 20.0
-	_dust_run.initial_velocity_min = 40.0
-	_dust_run.initial_velocity_max = 60.0
-	_dust_run.gravity = Vector2.ZERO
-	_dust_run.damping_min = 8.0
-	_dust_run.damping_max = 12.0
-	_dust_run.scale_amount_min = 1.5
-	_dust_run.scale_amount_max = 3.0
-	_dust_run.scale_amount_curve = shrink_curve
-	_dust_run.color_ramp = dust_gradient
-	_dust_run.position = Vector2(0, feet_y)
-	_dust_run.z_index = -1
-	add_child(_dust_run)
+	# 2. Land dust — one-shot burst, at feet, 15 fps
+	var land_sf: SpriteFrames = make_dust_frames.call(E + "land_dust.png", "land", 15.0, false)
+	_dust_land = make_dust_sprite.call("DustLand", land_sf, Vector2(0, feet_y))
+	_dust_land.animation_finished.connect(_on_land_dust_finished)
 
-	# --- 2. Land dust — sharp satisfying POOF, fast in fast out ---
-	_dust_land = CPUParticles2D.new()
-	_dust_land.name = "DustLand"
-	_dust_land.emitting = false
-	_dust_land.one_shot = true
-	_dust_land.amount = 8
-	_dust_land.lifetime = 0.25
-	_dust_land.explosiveness = 1.0
-	_dust_land.texture = dust_tex
-	_dust_land.direction = Vector2(0, -1)
-	_dust_land.spread = 45.0
-	_dust_land.initial_velocity_min = 60.0
-	_dust_land.initial_velocity_max = 120.0
-	_dust_land.gravity = Vector2.ZERO
-	_dust_land.damping_min = 6.0
-	_dust_land.damping_max = 10.0
-	_dust_land.scale_amount_min = 2.0
-	_dust_land.scale_amount_max = 4.0
-	_dust_land.scale_amount_curve = shrink_curve
-	_dust_land.color_ramp = land_gradient
-	_dust_land.position = Vector2(0, feet_y)
-	_dust_land.z_index = -1
-	add_child(_dust_land)
+	# 3. Wall dust — looping, at wall contact, 10 fps
+	var wall_sf: SpriteFrames = make_dust_frames.call(E + "wall_dust.png", "wall", 10.0, true)
+	_dust_wall = make_dust_sprite.call("DustWall", wall_sf, Vector2.ZERO)
 
-	# --- 3. Wall slide dust — tiny fast scrape particles ---
-	_dust_wall = CPUParticles2D.new()
-	_dust_wall.name = "DustWall"
-	_dust_wall.emitting = false
-	_dust_wall.amount = 2
-	_dust_wall.lifetime = 0.15
-	_dust_wall.texture = dust_tex
-	_dust_wall.direction = Vector2(0, 1)
-	_dust_wall.spread = 15.0
-	_dust_wall.initial_velocity_min = 20.0
-	_dust_wall.initial_velocity_max = 40.0
-	_dust_wall.gravity = Vector2.ZERO
-	_dust_wall.damping_min = 10.0
-	_dust_wall.damping_max = 15.0
-	_dust_wall.scale_amount_min = 1.0
-	_dust_wall.scale_amount_max = 2.0
-	_dust_wall.scale_amount_curve = shrink_curve
-	_dust_wall.color_ramp = dust_gradient
-	_dust_wall.position = Vector2(0, 0)
-	_dust_wall.z_index = -1
-	add_child(_dust_wall)
+	# 4. Dash dust — one-shot burst, at center, 15 fps
+	var dash_sf: SpriteFrames = make_dust_frames.call(E + "dash_dust.png", "dash", 15.0, false)
+	_dust_dash = make_dust_sprite.call("DustDash", dash_sf, Vector2.ZERO)
+	_dust_dash.animation_finished.connect(_on_dash_dust_finished)
 
-	# --- 4. Dash burst — sharp directional speed lines ---
-	_dust_dash = CPUParticles2D.new()
-	_dust_dash.name = "DustDash"
-	_dust_dash.emitting = false
-	_dust_dash.one_shot = true
-	_dust_dash.amount = 8
-	_dust_dash.lifetime = 0.2
-	_dust_dash.explosiveness = 1.0
-	_dust_dash.texture = dust_tex
-	_dust_dash.direction = Vector2(-1, 0)
-	_dust_dash.spread = 15.0
-	_dust_dash.initial_velocity_min = 80.0
-	_dust_dash.initial_velocity_max = 150.0
-	_dust_dash.gravity = Vector2.ZERO
-	_dust_dash.damping_min = 5.0
-	_dust_dash.damping_max = 8.0
-	_dust_dash.scale_amount_min = 2.0
-	_dust_dash.scale_amount_max = 5.0
-	_dust_dash.scale_amount_curve = shrink_curve
-	_dust_dash.color_ramp = land_gradient
-	_dust_dash.position = Vector2(0, 0)
-	_dust_dash.z_index = -1
-	add_child(_dust_dash)
+
+func _on_land_dust_finished() -> void:
+	_dust_land.visible = false
+
+
+func _on_dash_dust_finished() -> void:
+	_dust_dash.visible = false
 
 
 func _input(event: InputEvent) -> void:
@@ -259,10 +197,8 @@ func _input(event: InputEvent) -> void:
 			_key_right = key_event.pressed
 		KEY_SPACE:
 			if key_event.pressed and not key_event.echo:
-				_key_jump = true
 				_key_jump_just = true
 			elif not key_event.pressed:
-				_key_jump = false
 				_key_jump_released = true
 		KEY_SHIFT:
 			if key_event.pressed and not key_event.echo:
@@ -468,31 +404,45 @@ func _update_dust(landed: bool) -> void:
 	var on_floor := is_on_floor()
 	var feet_y := 9.0
 
-	# --- Run dust: emit when running on ground ---
+	# --- Run dust: play when running on ground ---
 	var is_running: bool = on_floor and abs(velocity.x) > 30 and dash_timer <= 0.0
-	_dust_run.emitting = is_running
 	if is_running:
-		# Emit behind the player (opposite to movement)
-		_dust_run.position.x = -sign(velocity.x) * 4.0
-		_dust_run.position.y = feet_y
+		_dust_run.flip_h = velocity.x > 0.0  # flip opposite to movement
+		_dust_run.position = Vector2(-sign(velocity.x) * 4.0, feet_y)
+		if not _dust_run.visible:
+			_dust_run.visible = true
+			_dust_run.play("run")
+	else:
+		if _dust_run.visible:
+			_dust_run.visible = false
+			_dust_run.stop()
 
 	# --- Land dust: one-shot burst on landing ---
 	if landed:
 		_dust_land.position = Vector2(0, feet_y)
-		_dust_land.emitting = false  # reset one_shot
-		_dust_land.emitting = true
+		_dust_land.visible = true
+		_dust_land.frame = 0
+		_dust_land.play("land")
 
-	# --- Wall slide dust: emit while wall sliding ---
-	_dust_wall.emitting = is_wall_sliding
+	# --- Wall slide dust: play while wall sliding ---
 	if is_wall_sliding:
-		# Position at the wall contact side, near player center
-		_dust_wall.position = Vector2(wall_dir * 6.0, -2.0)
+		var wn := get_wall_normal()
+		_dust_wall.position = Vector2(-wn.x * 6.0, -2.0)
+		_dust_wall.flip_h = wn.x > 0.0
+		if not _dust_wall.visible:
+			_dust_wall.visible = true
+			_dust_wall.play("wall")
+	else:
+		if _dust_wall.visible:
+			_dust_wall.visible = false
+			_dust_wall.stop()
 
 	# --- Dash dust: one-shot burst at dash start ---
 	var is_dashing := dash_timer > 0.0
 	if is_dashing and not _was_dashing:
-		_dust_dash.direction = Vector2(-dash_direction, 0)
+		_dust_dash.flip_h = dash_direction > 0.0  # flip opposite to dash
 		_dust_dash.position = Vector2(-dash_direction * 4.0, 0)
-		_dust_dash.emitting = false  # reset one_shot
-		_dust_dash.emitting = true
+		_dust_dash.visible = true
+		_dust_dash.frame = 0
+		_dust_dash.play("dash")
 	_was_dashing = is_dashing
