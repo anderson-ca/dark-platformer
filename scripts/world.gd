@@ -9,6 +9,8 @@ const GOAL_COLOR := Color(0.333, 0.8, 0.333)
 var current_room_index: int = 0
 var room_geometry: Node2D
 var props_container: Node2D
+var fg_container: Node2D
+var mg_container: Node2D
 var hud_node: Node
 
 
@@ -26,6 +28,16 @@ func _ready() -> void:
 	props_container = Node2D.new()
 	props_container.name = "Props"
 	add_child(props_container)
+
+	mg_container = Node2D.new()
+	mg_container.name = "Midground"
+	mg_container.z_index = 0
+	add_child(mg_container)
+
+	fg_container = Node2D.new()
+	fg_container.name = "Foreground"
+	fg_container.z_index = 2
+	add_child(fg_container)
 
 	# Create HUD
 	var hud_script := load("res://scripts/hud.gd")
@@ -220,6 +232,35 @@ func _setup_room1_props() -> void:
 	col.shape = shape
 	wall.add_child(col)
 	room_geometry.add_child(wall)
+
+	# --- Zone 1 left cluster (x=50-250) ---
+	var MG := "res://assets/props/room_1/shared/midground/"
+	var FG := "res://assets/props/room_1/shared/foreground/"
+
+	# Helper to create a prop Sprite2D
+	var _place := func(container: Node2D, node_name: String, tex_path: String, pos: Vector2) -> void:
+		var sprite := Sprite2D.new()
+		sprite.name = node_name
+		sprite.texture = load(tex_path) as Texture2D
+		sprite.centered = true
+		sprite.position = pos
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		container.add_child(sprite)
+
+	# Layer 1 — Midground anchor (behind player, z=0)
+	_place.call(mg_container, "mg_tree_1", MG + "mg_tree_pine_lg.png", Vector2(80, 640))
+
+	# Layer 2 — Foreground large (in front of player, z=2)
+	_place.call(fg_container, "fg_bush_xl_1", FG + "fg_bush_xl.png", Vector2(60, 642))
+	_place.call(fg_container, "fg_boulder_lg_1", FG + "fg_boulder_lg.png", Vector2(150, 638))
+
+	# Layer 3 — Foreground medium (fill gaps)
+	_place.call(fg_container, "fg_bush_md_1", FG + "fg_bush1_md.png", Vector2(120, 640))
+	_place.call(fg_container, "fg_plant_md_1", FG + "fg_plant_md.png", Vector2(200, 642))
+
+	# Layer 4 — Foreground small (ground detail)
+	_place.call(fg_container, "fg_boulder_moss_1", FG + "fg_boulder1_moss_sm.png", Vector2(90, 643))
+	_place.call(fg_container, "fg_bush_sm_1", FG + "fg_bush3_sm.png", Vector2(170, 641))
 
 
 func _create_solid(x: float, y: float, w: float, h: float) -> void:

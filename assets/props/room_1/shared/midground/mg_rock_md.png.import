@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgpfkcfojh3lu"
-path="res://.godot/imported/fg_tall_grass_md.png-11d40dda4da4fa7955bce7759b8135b0.ctex"
+uid="uid://b5h3fo23pvkht"
+path="res://.godot/imported/mg_rock_md.png-6f599340104084ae0ddf991cbc53e87f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/foreground/fg_tall_grass_md.png"
-dest_files=["res://.godot/imported/fg_tall_grass_md.png-11d40dda4da4fa7955bce7759b8135b0.ctex"]
+source_file="res://assets/props/room_1/shared/midground/mg_rock_md.png"
+dest_files=["res://.godot/imported/mg_rock_md.png-6f599340104084ae0ddf991cbc53e87f.ctex"]
 
 [params]
 
