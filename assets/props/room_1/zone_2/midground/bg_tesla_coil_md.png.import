@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://bt2wsfwx215ap"
+path="res://.godot/imported/bg_tesla_coil_md.png-2a17b6b2dfd1f94ea8caa7b228c72c98.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_2/midground/bg_tesla_coil_md.png"
+dest_files=["res://.godot/imported/bg_tesla_coil_md.png-2a17b6b2dfd1f94ea8caa7b228c72c98.ctex"]
 
 [params]
 

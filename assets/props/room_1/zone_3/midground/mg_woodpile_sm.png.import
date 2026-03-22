@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://ponevmhctj15"
+path="res://.godot/imported/mg_woodpile_sm.png-3f8622f0b8a4d99d5dc2ba59672458b5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_3/midground/mg_woodpile_sm.png"
+dest_files=["res://.godot/imported/mg_woodpile_sm.png-3f8622f0b8a4d99d5dc2ba59672458b5.ctex"]
 
 [params]
 

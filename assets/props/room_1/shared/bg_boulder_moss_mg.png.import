@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://sw1nf5o3dl6u"
+path="res://.godot/imported/bg_boulder_moss_mg.png-910fcb6fec92c77ed0cca03f64bc5cdf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/shared/bg_boulder_moss_mg.png"
+dest_files=["res://.godot/imported/bg_boulder_moss_mg.png-910fcb6fec92c77ed0cca03f64bc5cdf.ctex"]
 
 [params]
 

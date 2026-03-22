@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://cqak16whep4to"
+path="res://.godot/imported/mg_blue_crate_sm.png-04592019ed335660da13aa98faf8155d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_2/midground/mg_blue_crate_sm.png"
+dest_files=["res://.godot/imported/mg_blue_crate_sm.png-04592019ed335660da13aa98faf8155d.ctex"]
 
 [params]
 

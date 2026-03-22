@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://s3201fuqx2hn"
+path="res://.godot/imported/Hanger Dude 1 - 15x93.png-14e491df2a4d17922f459eb79a58c53f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_3/background/animated/Hanger Dude 1 - 15x93.png"
+dest_files=["res://.godot/imported/Hanger Dude 1 - 15x93.png-14e491df2a4d17922f459eb79a58c53f.ctex"]
 
 [params]
 

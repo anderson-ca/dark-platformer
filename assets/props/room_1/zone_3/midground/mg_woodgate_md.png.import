@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://b0exh6jus7n0l"
+path="res://.godot/imported/mg_woodgate_md.png-1c8ca83c725fde3190193239b25a9753.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_3/midground/mg_woodgate_md.png"
+dest_files=["res://.godot/imported/mg_woodgate_md.png-1c8ca83c725fde3190193239b25a9753.ctex"]
 
 [params]
 

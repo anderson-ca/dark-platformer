@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://bpe3p6e7ixmvi"
+path="res://.godot/imported/bf_rock1_sm.png-e7a95e53a01b83929207ba6911489b87.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/shared/background/bf_rock1_sm.png"
+dest_files=["res://.godot/imported/bf_rock1_sm.png-e7a95e53a01b83929207ba6911489b87.ctex"]
 
 [params]
 

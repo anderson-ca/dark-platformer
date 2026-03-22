@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://bgjshsg2q3s8a"
+path="res://.godot/imported/mg_camp_tent3_open_md.png-34d99150ce8469b4f1a84e06e9302618.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_2/midground/mg_camp_tent3_open_md.png"
+dest_files=["res://.godot/imported/mg_camp_tent3_open_md.png-34d99150ce8469b4f1a84e06e9302618.ctex"]
 
 [params]
 

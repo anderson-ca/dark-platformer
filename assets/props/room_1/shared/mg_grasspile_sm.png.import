@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://bdg82ybnkrfxn"
+path="res://.godot/imported/mg_grasspile_sm.png-567423e7d170b93b2382f2013694373a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/shared/mg_grasspile_sm.png"
+dest_files=["res://.godot/imported/mg_grasspile_sm.png-567423e7d170b93b2382f2013694373a.ctex"]
 
 [params]
 

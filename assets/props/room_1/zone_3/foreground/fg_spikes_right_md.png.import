@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tp0n8elaisxr"
-path="res://.godot/imported/land_dust.png-2cac7095036126cba41c105e941174d5.ctex"
+uid="uid://cyv8xvql0hfsj"
+path="res://.godot/imported/fg_spikes_right_md.png-40482149a53f3d143565eb0a431aa5bb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/land_dust.png"
-dest_files=["res://.godot/imported/land_dust.png-2cac7095036126cba41c105e941174d5.ctex"]
+source_file="res://assets/props/room_1/zone_3/foreground/fg_spikes_right_md.png"
+dest_files=["res://.godot/imported/fg_spikes_right_md.png-40482149a53f3d143565eb0a431aa5bb.ctex"]
 
 [params]
 

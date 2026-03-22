@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://b6mvfy7x2dn57"
+path="res://.godot/imported/fg_bush_xl.png-cb5cf9466f6e257c1c36ae5e199eb5f5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/shared/foreground/fg_bush_xl.png"
+dest_files=["res://.godot/imported/fg_bush_xl.png-cb5cf9466f6e257c1c36ae5e199eb5f5.ctex"]
 
 [params]
 

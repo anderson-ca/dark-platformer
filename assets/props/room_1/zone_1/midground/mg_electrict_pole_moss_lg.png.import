@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://cfk5m83yqhvl"
+path="res://.godot/imported/mg_electrict_pole_moss_lg.png-8ebf3c005f4f936b939124ad73fd5688.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_1/midground/mg_electrict_pole_moss_lg.png"
+dest_files=["res://.godot/imported/mg_electrict_pole_moss_lg.png-8ebf3c005f4f936b939124ad73fd5688.ctex"]
 
 [params]
 

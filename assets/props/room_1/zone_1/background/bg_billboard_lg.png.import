@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://d2s764ltm4xvk"
+path="res://.godot/imported/bg_billboard_lg.png-20b8cf61462c00eabb256d863d018cce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_1/background/bg_billboard_lg.png"
+dest_files=["res://.godot/imported/bg_billboard_lg.png-20b8cf61462c00eabb256d863d018cce.ctex"]
 
 [params]
 

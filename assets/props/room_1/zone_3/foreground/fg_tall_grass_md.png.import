@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://dgbt6fslvrems"
+path="res://.godot/imported/fg_tall_grass_md.png-645785a85bc519939dc07c0b4d71dbb3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/props/room_1/zone_3/foreground/fg_tall_grass_md.png"
+dest_files=["res://.godot/imported/fg_tall_grass_md.png-645785a85bc519939dc07c0b4d71dbb3.ctex"]
 
 [params]
 

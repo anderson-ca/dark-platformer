@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by3qsxmda465a"
-path="res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"
+uid="uid://b20g3iom5qfw8"
+path="res://.godot/imported/jump_land_dust.png-a62b2417ab7376d444315c3d42962f74.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/wall_dust.png"
-dest_files=["res://.godot/imported/wall_dust.png-d9cbd912d16b2eb4a1624766f4f0cd2b.ctex"]
+source_file="res://assets/effects/jump_land_dust.png"
+dest_files=["res://.godot/imported/jump_land_dust.png-a62b2417ab7376d444315c3d42962f74.ctex"]
 
 [params]
 
