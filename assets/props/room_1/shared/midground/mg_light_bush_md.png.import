@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://grfbbh0uinfu"
-path="res://.godot/imported/mg_light_bush_md.png-4cb0dd8b75a285c211ac15d3a12fc543.ctex"
+path="res://.godot/imported/mg_light_bush_md.png-36b6fb45039d638f6a88f9efe638cdb2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/midground/mg_light_bush_md.png"
-dest_files=["res://.godot/imported/mg_light_bush_md.png-4cb0dd8b75a285c211ac15d3a12fc543.ctex"]
+source_file="res://assets/props/room_1/shared/mg_light_bush_md.png"
+dest_files=["res://.godot/imported/mg_light_bush_md.png-36b6fb45039d638f6a88f9efe638cdb2.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://colewljngsf10"
-path="res://.godot/imported/fg_boulder_sm.png-e6e55e676da2b4a4eda5b9f8eaa056d4.ctex"
+path="res://.godot/imported/fg_boulder_sm.png-57044888456d6bc80cd0ad0b618cad0c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/foreground/fg_boulder_sm.png"
-dest_files=["res://.godot/imported/fg_boulder_sm.png-e6e55e676da2b4a4eda5b9f8eaa056d4.ctex"]
+source_file="res://assets/props/room_1/shared/fg_boulder_sm.png"
+dest_files=["res://.godot/imported/fg_boulder_sm.png-57044888456d6bc80cd0ad0b618cad0c.ctex"]
 
 [params]
 

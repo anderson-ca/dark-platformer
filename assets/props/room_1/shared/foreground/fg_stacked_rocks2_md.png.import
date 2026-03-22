@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bipcli0t65oqn"
-path="res://.godot/imported/fg_stacked_rocks2_md.png-1be5ddaa5b7b18fbabfe62948b53e934.ctex"
+path="res://.godot/imported/fg_stacked_rocks2_md.png-a48f71e29f6377d612b9116977f0365c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/foreground/fg_stacked_rocks2_md.png"
-dest_files=["res://.godot/imported/fg_stacked_rocks2_md.png-1be5ddaa5b7b18fbabfe62948b53e934.ctex"]
+source_file="res://assets/props/room_1/shared/fg_stacked_rocks2_md.png"
+dest_files=["res://.godot/imported/fg_stacked_rocks2_md.png-a48f71e29f6377d612b9116977f0365c.ctex"]
 
 [params]
 

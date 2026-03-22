@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://06i4wryevhf4"
-path="res://.godot/imported/fg_rock_moss_sm.png-879b419f5411751cc7b6a75dd258e036.ctex"
+path="res://.godot/imported/fg_rock_moss_sm.png-e8fd7a71982e9187c5d63ae0a246dae5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/foreground/fg_rock_moss_sm.png"
-dest_files=["res://.godot/imported/fg_rock_moss_sm.png-879b419f5411751cc7b6a75dd258e036.ctex"]
+source_file="res://assets/props/room_1/shared/fg_rock_moss_sm.png"
+dest_files=["res://.godot/imported/fg_rock_moss_sm.png-e8fd7a71982e9187c5d63ae0a246dae5.ctex"]
 
 [params]
 

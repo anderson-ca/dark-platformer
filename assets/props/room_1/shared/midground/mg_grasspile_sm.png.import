@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdg82ybnkrfxn"
-path="res://.godot/imported/mg_grasspile_sm.png-0a98ecc56e8b07532a78260a327ecd99.ctex"
+path="res://.godot/imported/mg_grasspile_sm.png-567423e7d170b93b2382f2013694373a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/midground/mg_grasspile_sm.png"
-dest_files=["res://.godot/imported/mg_grasspile_sm.png-0a98ecc56e8b07532a78260a327ecd99.ctex"]
+source_file="res://assets/props/room_1/shared/mg_grasspile_sm.png"
+dest_files=["res://.godot/imported/mg_grasspile_sm.png-567423e7d170b93b2382f2013694373a.ctex"]
 
 [params]
 
