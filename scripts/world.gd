@@ -7,163 +7,27 @@ const HAZARD_COLOR := Color(0.8, 0.2, 0.2)
 const GOAL_COLOR := Color(0.333, 0.8, 0.333)
 
 var current_room_index: int = 0
-var room_geometry: Node2D
-var props_container: Node2D
-var bg_container: Node2D
-var mg_container: Node2D
-var fg_container: Node2D
-var hud_node: Node
-
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
+@onready var room_geometry: Node2D = $RoomGeometry
+@onready var props_container: Node2D = $Props
+@onready var bg_container: Node2D = $Background
+@onready var mg_container: Node2D = $Midground
+@onready var fg_container: Node2D = $Foreground
+@onready var hud_node: CanvasLayer = $HUD
+@onready var rain: CPUParticles2D = $Player/Camera2D/Rain
 
 
 func _ready() -> void:
-	_setup_parallax_background()
-
-	room_geometry = Node2D.new()
-	room_geometry.name = "RoomGeometry"
-	add_child(room_geometry)
-
-	props_container = Node2D.new()
-	props_container.name = "Props"
-	add_child(props_container)
-
-	bg_container = Node2D.new()
-	bg_container.name = "Background"
-	bg_container.z_index = -1
-	add_child(bg_container)
-
-	mg_container = Node2D.new()
-	mg_container.name = "Midground"
-	mg_container.z_index = 0
-	add_child(mg_container)
-
-	fg_container = Node2D.new()
-	fg_container.name = "Foreground"
-	fg_container.z_index = 2
-	add_child(fg_container)
-
-	# Create HUD
-	var hud_script := load("res://scripts/hud.gd")
-	hud_node = CanvasLayer.new()
-	hud_node.set_script(hud_script)
-	hud_node.name = "HUD"
-	add_child(hud_node)
-
-	# === WEATHER SYSTEM ===
-
-	# Shared raindrop texture (thin 1x8 white streak)
+	# Rain texture — generated at runtime (1x8 white streak)
 	var drop_img := Image.create(1, 8, false, Image.FORMAT_RGBA8)
 	drop_img.fill(Color.WHITE)
-	var drop_tex := ImageTexture.create_from_image(drop_img)
-
-	# --- Layer 1: Falling rain (child of Camera2D) ---
-	var rain := CPUParticles2D.new()
-	rain.name = "Rain"
-	rain.emitting = true
-	rain.amount = 450
-	rain.lifetime = 0.8
-	rain.texture = drop_tex
-	rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	rain.emission_rect_extents = Vector2(500, 10)
-	rain.direction = Vector2(-0.2, 1.0)
-	rain.spread = 5.0
-	rain.gravity = Vector2(-30, 900)
-	rain.initial_velocity_min = 400.0
-	rain.initial_velocity_max = 600.0
-	rain.scale_amount_min = 0.3
-	rain.scale_amount_max = 2.0
-	rain.color = Color(0.7, 0.75, 0.85, 0.15)
-	rain.position = Vector2(0, -280)
-	rain.z_index = 10
-	camera.add_child(rain)
+	rain.texture = ImageTexture.create_from_image(drop_img)
 
 	player.hit_hazard.connect(_on_hazard)
 
 	load_room(0)
-
-
-func _setup_parallax_background() -> void:
-	var bg := ParallaxBackground.new()
-	bg.name = "ParallaxBackground"
-	add_child(bg)
-
-	# Scale to fill 450px viewport height from 320px source images
-	var bg_scale := 450.0 / 320.0
-	var scaled_width := 640.0 * bg_scale
-
-	var P := "res://assets/backgrounds/dark_forest/"
-
-	# Layers ordered back-to-front: 0 (sky) through 13 (foreground frame)
-	# motion_scale.x spreads evenly from 0.0 (static sky) to 1.05 (foreground)
-	var layers := [
-		["bg_sky",      P + "0.png",              0.0],
-		["bg_far_1",    P + "1.png",              0.1],
-		["bg_far_2",    P + "2.png",              0.2],
-		["bg_mid_1",    P + "3.png",              0.3],
-		["bg_mid_2",    P + "4.png",              0.4],
-		["bg_mid_3",    P + "5.png",              0.5],
-		["bg_near_1",   P + "6.png",              0.6],
-		["bg_near_2",   P + "7.png",              0.7],
-		["bg_near_3",   P + "8.png",              0.8],
-		["bg_closest",  P + "9.png",              0.9],
-		["bg_debris",   P + "12.png",             1.0],
-	]
-
-	for layer_def in layers:
-		var layer_name: String = layer_def[0]
-		var tex_path: String = layer_def[1]
-		var scroll_x: float = layer_def[2]
-
-		var layer := ParallaxLayer.new()
-		layer.name = layer_name
-		layer.motion_scale = Vector2(scroll_x, 0.0)
-		layer.motion_mirroring = Vector2(scaled_width, 0.0)
-		bg.add_child(layer)
-
-		var sprite := Sprite2D.new()
-		sprite.texture = load(tex_path) as Texture2D
-		sprite.centered = false
-		sprite.scale = Vector2(bg_scale, bg_scale)
-		sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-		layer.add_child(sprite)
-
-	# Floor layer — world-space, locked to camera at motion_scale (1,1)
-	# so it feels like solid ground. Positioned so the green vegetation
-	# aligns with the collision surface at y=640.
-	var floor_layer := ParallaxLayer.new()
-	floor_layer.name = "bg_floor"
-	floor_layer.motion_scale = Vector2(1.0, 1.0)
-	floor_layer.motion_mirroring = Vector2(scaled_width, 0.0)
-	bg.add_child(floor_layer)
-
-	var floor_sprite := Sprite2D.new()
-	floor_sprite.texture = load(P + "10-(floor).png") as Texture2D
-	floor_sprite.centered = false
-	floor_sprite.scale = Vector2(bg_scale, bg_scale)
-	floor_sprite.position.y = 457.0  # 640 - (130 * bg_scale) — aligns vegetation with ground
-	floor_sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	floor_layer.add_child(floor_sprite)
-
-	# Light rays overlay — additive blend, slow drift, low opacity
-	var light_layer := ParallaxLayer.new()
-	light_layer.name = "bg_light"
-	light_layer.motion_scale = Vector2(0.3, 0.0)
-	light_layer.motion_mirroring = Vector2(scaled_width, 0.0)
-	bg.add_child(light_layer)
-
-	var light_sprite := Sprite2D.new()
-	light_sprite.texture = load(P + "11---light.png") as Texture2D
-	light_sprite.centered = false
-	light_sprite.scale = Vector2(bg_scale, bg_scale)
-	light_sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	light_sprite.modulate = Color(1.0, 1.0, 1.0, 0.15)
-	var light_mat := CanvasItemMaterial.new()
-	light_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	light_sprite.material = light_mat
-	light_layer.add_child(light_sprite)
 
 
 func load_room(index: int) -> void:
