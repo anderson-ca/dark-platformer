@@ -209,7 +209,17 @@ func load_room(index: int) -> void:
 func _setup_room1_props() -> void:
 	# Ground ColorRect removed — parallax floor layer (10-(floor).png) serves as visual ground.
 	# Collision StaticBody2D at y=640 is created by _create_solid() from room data.
-	pass
+
+	# Zone 1 boundary wall — invisible, blocks player at x=900
+	var wall := StaticBody2D.new()
+	wall.name = "zone_1_boundary"
+	wall.position = Vector2(900, 360)  # centered vertically in 720px room
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(10, 720)
+	var col := CollisionShape2D.new()
+	col.shape = shape
+	wall.add_child(col)
+	room_geometry.add_child(wall)
 
 
 func _create_solid(x: float, y: float, w: float, h: float) -> void:
