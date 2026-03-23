@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://clcipm73xm03k"
-path="res://.godot/imported/Far1.png-ad3fcd7caa2416aefa0dbde45ebd576a.ctex"
+uid="uid://c24ktic430sks"
+path="res://.godot/imported/Deco Sheet.png-3b2c1c5b8e82fae55b2831dbd992469c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/mountain_pass/Far1.png"
-dest_files=["res://.godot/imported/Far1.png-ad3fcd7caa2416aefa0dbde45ebd576a.ctex"]
+source_file="res://assets/tilesets/mountain_pass/Deco Sheet/Deco Sheet.png"
+dest_files=["res://.godot/imported/Deco Sheet.png-3b2c1c5b8e82fae55b2831dbd992469c.ctex"]
 
 [params]
 

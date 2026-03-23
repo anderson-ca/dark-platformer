@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://71ska16tjkev"
-path="res://.godot/imported/Mid1.png-6b92ba6e0bb44a458efeb9e2ca5131ba.ctex"
+uid="uid://j7x75326842v"
+path="res://.godot/imported/03 - Sun.png-fcd9d084ffd8b12861bd66667ba21aef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/mountain_pass/Mid1.png"
-dest_files=["res://.godot/imported/Mid1.png-6b92ba6e0bb44a458efeb9e2ca5131ba.ctex"]
+source_file="res://assets/backgrounds/mountain_pass/simple/03 - Sun.png"
+dest_files=["res://.godot/imported/03 - Sun.png-fcd9d084ffd8b12861bd66667ba21aef.ctex"]
 
 [params]
 

@@ -3,13 +3,12 @@
 [ext_resource type="Script" uid="uid://b3ral4qd1nbe8" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" uid="uid://b7kt1khso4j84" path="res://scripts/player.gd" id="2_player"]
 [ext_resource type="Script" uid="uid://ddf5auiq1rh5n" path="res://scripts/hud.gd" id="3_hud"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/BG1.png" id="4_bg1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Sun1.png" id="5_sun1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Far1.png" id="6_far1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Mid1.png" id="7_mid1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/dense atmostphere1.png" id="8_atmo1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/FG1.png" id="9_fg1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Fog1.png" id="10_fog1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/01 - below fog.png" id="4_layer01"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/02 - dense atmosphere.png" id="5_layer02"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/03 - Sun.png" id="6_layer03"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/04 - rocks.png" id="7_layer04"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/05 - back rocks.png" id="8_layer05"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/simple/06 - clouds.png" id="9_layer06"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(10, 20)
@@ -19,75 +18,65 @@ script = ExtResource("1_world")
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="." unique_id=1836780912]
 
-[node name="sky" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="below_fog" type="ParallaxLayer" parent="ParallaxBackground"]
 motion_scale = Vector2(0.1, 0)
-motion_mirroring = Vector2(881, 0)
+motion_mirroring = Vector2(844, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sky"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/below_fog"]
 texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("4_bg1")
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("4_layer01")
+centered = false
+
+[node name="dense_atmosphere" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.2, 0)
+motion_mirroring = Vector2(844, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/dense_atmosphere"]
+texture_repeat = 2
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("5_layer02")
 centered = false
 
 [node name="sun" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.15, 0)
-motion_mirroring = Vector2(881, 0)
+motion_scale = Vector2(0.3, 0)
+motion_mirroring = Vector2(844, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sun"]
 texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("5_sun1")
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("6_layer03")
 centered = false
 
-[node name="far_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.3, 0)
-motion_mirroring = Vector2(881, 0)
-
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/far_rocks"]
-texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("6_far1")
-centered = false
-
-[node name="mid_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="rocks" type="ParallaxLayer" parent="ParallaxBackground"]
 motion_scale = Vector2(0.5, 0)
-motion_mirroring = Vector2(881, 0)
+motion_mirroring = Vector2(844, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/mid_rocks"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/rocks"]
 texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("7_mid1")
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("7_layer04")
 centered = false
 
-[node name="atmosphere" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.6, 0)
-motion_mirroring = Vector2(881, 0)
+[node name="back_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.7, 0)
+motion_mirroring = Vector2(844, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/atmosphere"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/back_rocks"]
 texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("8_atmo1")
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("8_layer05")
 centered = false
 
-[node name="fg_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.8, 0)
-motion_mirroring = Vector2(881, 0)
-
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fg_rocks"]
-texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("9_fg1")
-centered = false
-
-[node name="fog" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="clouds" type="ParallaxLayer" parent="ParallaxBackground"]
 motion_scale = Vector2(0.9, 0)
-motion_mirroring = Vector2(881, 0)
+motion_mirroring = Vector2(844, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fog"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/clouds"]
 modulate = Color(1, 1, 1, 0.7)
 texture_repeat = 2
-scale = Vector2(2.7273, 2.7273)
-texture = ExtResource("10_fog1")
+scale = Vector2(2.34375, 2.34375)
+texture = ExtResource("9_layer06")
 centered = false
 
 [node name="Background" type="Node2D" parent="." unique_id=972318863]
