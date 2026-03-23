@@ -116,10 +116,10 @@ func _setup_sprite_frames() -> void:
 
 	animated_sprite.sprite_frames = sf
 	animated_sprite.scale = Vector2(1.5, 1.5)
-	# Dark sage: character centered in 192x192 frame
-	# Feet at ~y=140, frame center y=96 → 44px below center
-	# Collision 10x20 at y=-1, bottom = 9. offset.y = 9/1.5 - 44 = -38
-	animated_sprite.offset = Vector2(0, -38)
+	# Dark sage: character tiny in 192x192 frame
+	# Feet at ~y=72, frame center y=96 → 24px above center
+	# Collision 10x20 at y=-1, bottom = 9. offset.y = 9/1.5 - (72-96) = 6+24 = 30
+	animated_sprite.offset = Vector2(0, 30)
 	animated_sprite.play("idle")
 
 
