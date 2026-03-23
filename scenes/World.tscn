@@ -3,13 +3,14 @@
 [ext_resource type="Script" uid="uid://b3ral4qd1nbe8" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" uid="uid://b7kt1khso4j84" path="res://scripts/player.gd" id="2_player"]
 [ext_resource type="Script" uid="uid://ddf5auiq1rh5n" path="res://scripts/hud.gd" id="3_hud"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/BG1.png" id="4_bg1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Sun1.png" id="5_sun1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Far1.png" id="6_far1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Mid1.png" id="7_mid1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/dense atmostphere1.png" id="8_atmo1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/FG1.png" id="9_fg1"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/mountain_pass/Fog1.png" id="10_fog1"]
+[ext_resource type="Texture2D" uid="uid://dt0hhvlq4eejj" path="res://assets/backgrounds/mountain_pass/BG1.png" id="4_bg1"]
+[ext_resource type="Texture2D" uid="uid://vwb2v8gh5tju" path="res://assets/backgrounds/mountain_pass/Sun1.png" id="5_sun1"]
+[ext_resource type="Texture2D" uid="uid://clcipm73xm03k" path="res://assets/backgrounds/mountain_pass/Far1.png" id="6_far1"]
+[ext_resource type="Texture2D" uid="uid://71ska16tjkev" path="res://assets/backgrounds/mountain_pass/Mid1.png" id="7_mid1"]
+[ext_resource type="Texture2D" uid="uid://crs0wx7tj3k86" path="res://assets/backgrounds/mountain_pass/dense atmostphere1.png" id="8_atmo1"]
+[ext_resource type="Texture2D" uid="uid://dbdea527wppbo" path="res://assets/backgrounds/mountain_pass/FG1.png" id="9_fg1"]
+[ext_resource type="Texture2D" uid="uid://bl05tbolnifqo" path="res://assets/backgrounds/mountain_pass/Fog1.png" id="10_fog1"]
+[ext_resource type="Texture2D" uid="uid://cnrrcdv35wqix" path="res://assets/props/room_1/zone_2/midground/mg_camp_tent_md.png" id="11_h1bdy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(10, 20)
@@ -19,71 +20,71 @@ script = ExtResource("1_world")
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="." unique_id=1836780912]
 
-[node name="sky" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="sky" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1453572963]
 motion_scale = Vector2(0.1, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sky"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sky" unique_id=1174549033]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("4_bg1")
 centered = false
 
-[node name="sun" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="sun" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1494181235]
 motion_scale = Vector2(0.15, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sun"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sun" unique_id=1777141831]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("5_sun1")
 centered = false
 
-[node name="far_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="far_rocks" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1105300478]
 motion_scale = Vector2(0.3, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/far_rocks"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/far_rocks" unique_id=245091555]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("6_far1")
 centered = false
 
-[node name="mid_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="mid_rocks" type="ParallaxLayer" parent="ParallaxBackground" unique_id=439051121]
 motion_scale = Vector2(0.5, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/mid_rocks"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/mid_rocks" unique_id=740096959]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("7_mid1")
 centered = false
 
-[node name="atmosphere" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="atmosphere" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1755958023]
 motion_scale = Vector2(0.6, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/atmosphere"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/atmosphere" unique_id=709875945]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("8_atmo1")
 centered = false
 
-[node name="fg_rocks" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="fg_rocks" type="ParallaxLayer" parent="ParallaxBackground" unique_id=621569145]
 motion_scale = Vector2(0.8, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fg_rocks"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fg_rocks" unique_id=547387539]
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
 texture = ExtResource("9_fg1")
 centered = false
 
-[node name="fog" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="fog" type="ParallaxLayer" parent="ParallaxBackground" unique_id=316839516]
 motion_scale = Vector2(0.9, 0)
 motion_mirroring = Vector2(881, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fog"]
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/fog" unique_id=1997463683]
 modulate = Color(1, 1, 1, 0.7)
 texture_repeat = 2
 scale = Vector2(2.7273, 2.7273)
@@ -128,21 +129,18 @@ scale_amount_min = 0.3
 scale_amount_max = 2.0
 color = Color(0.7, 0.75, 0.85, 0.15)
 
-[node name="RainSplash" type="CPUParticles2D" parent="Player/Camera2D"]
+[node name="RainSplash" type="CPUParticles2D" parent="Player/Camera2D" unique_id=1292901186]
 z_index = 10
 position = Vector2(0, 9)
 amount = 60
 lifetime = 0.2
-explosiveness = 0.0
 emission_shape = 3
 emission_rect_extents = Vector2(420, 1)
 direction = Vector2(0, -1)
-spread = 45.0
 gravity = Vector2(0, 150)
 initial_velocity_min = 10.0
 initial_velocity_max = 30.0
 scale_amount_min = 0.3
-scale_amount_max = 1.0
 color = Color(0.75, 0.8, 0.9, 0.08)
 
 [node name="Foreground" type="Node2D" parent="." unique_id=2125731460]
@@ -150,3 +148,9 @@ z_index = 2
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1986929028]
 script = ExtResource("3_hud")
+
+[node name="MgCampTentMd" type="Sprite2D" parent="Midground" unique_id=1655588514]
+z_index = -1
+position = Vector2(442.57077, 609.875)
+scale = Vector2(1.8296448, 1.9910716)
+texture = ExtResource("11_h1bdy")
