@@ -41,7 +41,9 @@ func _ready() -> void:
 	# Dark atmosphere — darken everything, player/campfire lights punch through
 	var canvas_mod := CanvasModulate.new()
 	canvas_mod.name = "DarkAtmosphere"
-	canvas_mod.color = Color(0.15, 0.15, 0.2, 1.0)
+	print("CanvasModulate BEFORE: Color(0.15, 0.15, 0.2, 1.0)")
+	canvas_mod.color = Color(0.08, 0.08, 0.12, 1.0)
+	print("CanvasModulate AFTER: ", canvas_mod.color)
 	add_child(canvas_mod)
 
 	load_room(0)
@@ -176,8 +178,10 @@ func _create_campfire(pos: Vector2) -> void:
 	# Campfire light — warm orange glow
 	var fire_light := PointLight2D.new()
 	fire_light.name = "FireLight"
-	fire_light.color = Color(1.0, 0.7, 0.3)
-	fire_light.energy = 1.2
+	print("FireLight BEFORE: color=Color(1.0, 0.7, 0.3), energy=1.2")
+	fire_light.color = Color(1.0, 0.5, 0.2)
+	fire_light.energy = 1.5
+	print("FireLight AFTER: color=", fire_light.color, ", energy=", fire_light.energy)
 	fire_light.texture = _make_light_texture()
 	fire_light.texture_scale = 1.5
 	fire_light.position = Vector2(0, -FRAME_H * sc * 0.5)

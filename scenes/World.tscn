@@ -100,6 +100,12 @@ z_index = -1
 
 [node name="Midground" type="Node2D" parent="." unique_id=94811605]
 
+[node name="MgCampTentMd" type="Sprite2D" parent="Midground" unique_id=1655588514]
+z_index = -1
+position = Vector2(430.95258, 617.43756)
+scale = Vector2(1.3443297, 1.5312512)
+texture = ExtResource("11_h1bdy")
+
 [node name="Player" type="CharacterBody2D" parent="." unique_id=156543881]
 position = Vector2(100, 580)
 script = ExtResource("2_player")
@@ -148,9 +154,3 @@ z_index = 2
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1986929028]
 script = ExtResource("3_hud")
-
-[node name="MgCampTentMd" type="Sprite2D" parent="Midground" unique_id=1655588514]
-z_index = -1
-position = Vector2(442.57077, 609.875)
-scale = Vector2(1.8296448, 1.9910716)
-texture = ExtResource("11_h1bdy")
