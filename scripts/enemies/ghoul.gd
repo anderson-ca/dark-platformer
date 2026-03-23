@@ -15,6 +15,8 @@ const ATTACK_COOLDOWN := 1.5
 const RECOVER_TIME := 1.0
 const REPOSITION_DISTANCE := 80.0
 const RECOVER_SPEED := 40.0
+const SOFT_SEPARATION_DIST := 35.0
+const SOFT_SEPARATION_FORCE := 80.0
 
 var state: State = State.IDLE
 var health: int = 3
@@ -51,7 +53,8 @@ func _ready() -> void:
 				break
 			world = world.get_parent()
 
-	print("Ghoul ready: health=", health, " max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
+	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
+	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
 	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
 
 
@@ -142,6 +145,16 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0.0, 200.0 * delta)
 			if reposition_timer <= 0.0:
 				_enter_state(State.CHASE)
+
+	# Soft body separation — prevent overlapping player
+	if _player and state != State.DEATH:
+		var dx: float = global_position.x - _player.global_position.x
+		var abs_dx: float = absf(dx)
+		if abs_dx < SOFT_SEPARATION_DIST and abs_dx > 0.1:
+			var push_dir: float = sign(dx)
+			var overlap: float = SOFT_SEPARATION_DIST - abs_dx
+			var push: float = push_dir * overlap * 3.0  # proportional push
+			velocity.x += clampf(push, -SOFT_SEPARATION_FORCE, SOFT_SEPARATION_FORCE)
 
 	move_and_slide()
 
@@ -294,7 +307,10 @@ func take_knockback(from_position: Vector2) -> void:
 func apply_repel(dir: float, force: float) -> void:
 	if state == State.DEATH:
 		return
-	velocity.x = dir * force
+	# Stop moving toward player, apply tiny push outward
+	if sign(velocity.x) != sign(dir):
+		velocity.x = 0.0
+	velocity.x = move_toward(velocity.x, dir * force, force)
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:

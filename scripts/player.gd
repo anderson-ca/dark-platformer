@@ -60,7 +60,7 @@ const COMBO_WINDOW_TIME := 0.4
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_zone: Area2D
-const SHIELD_REPEL_FORCE := 200.0
+const SHIELD_REPEL_FORCE := 15.0
 const SHIELD_ZONE_WIDTH := 45.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
@@ -229,11 +229,17 @@ func _setup_shield_zone() -> void:
 func _repel_enemies_from_shield() -> void:
 	if not _shield_zone.monitoring:
 		return
+	var shield_edge_x: float = global_position.x + facing * SHIELD_ZONE_WIDTH
 	for body in _shield_zone.get_overlapping_bodies():
 		if body.is_in_group("enemies") and body.has_method("apply_repel"):
 			var dir: float = sign(body.global_position.x - global_position.x)
 			if dir == 0.0:
 				dir = facing
+			# Place enemy at shield edge + small push
+			var target_x: float = shield_edge_x + dir * 5.0
+			var diff: float = target_x - body.global_position.x
+			body.global_position.x += diff * 0.3  # smooth push to edge
+			# Kill velocity toward player, add tiny push
 			body.apply_repel(dir, SHIELD_REPEL_FORCE)
 
 
