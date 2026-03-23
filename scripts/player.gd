@@ -30,9 +30,9 @@ const DASH_SPEED = 500.0
 const DASH_DURATION = 0.15
 const DASH_COOLDOWN = 0.6
 
-# Sprite frame size (basic player strips use 240×128 cells)
-const FRAME_W = 240
-const FRAME_H = 128
+# Sprite frame size (dark sage strips use 192×192 cells)
+const FRAME_W = 192
+const FRAME_H = 192
 
 # Respawn
 var fall_respawn_y: float = 9999.0
@@ -83,16 +83,16 @@ func _setup_sprite_frames() -> void:
 		sf.remove_animation("default")
 
 	# [anim_name, file_path, frame_count, fps, loop]
-	var P := "res://assets/sprites/player/basic_player/"
+	var P := "res://assets/sprites/player/dark_sage/"
 	var anims := [
-		["idle",       P + "1 - Idle.png",     12, 8,  true],
-		["run",        P + "2 - Run.png",        8, 10, true],
-		["jump",       P + "3 - jump.png",       4, 10, false],
-		["fall",       P + "5 - fall.png",       4, 8,  true],
-		["dash",       P + "6 - dash.png",       4, 14, false],
-		["wall_slide", P + "4 - mid-air.png",    1, 8,  true],
-		["death",      P + "15 - death.png",    10, 8,  false],
-		["hit",        P + "14 - hit.png",       1, 8,  false],
+		["idle",       P + "The Evil Sage-Idle Front.png",  9, 8,  true],
+		["run",        P + "The Evil Sage-Run.png",         8, 10, true],
+		["jump",       P + "The Evil Sage-Jump.png",        4, 10, false],
+		["fall",       P + "The Evil Sage-Fall.png",        4, 8,  true],
+		["dash",       P + "The Evil Sage-Dash.png",        4, 14, false],
+		["wall_slide", P + "The Evil Sage-Wall Slide.png",  4, 8,  true],
+		["death",      P + "The Evil Sage-Death.png",       8, 8,  false],
+		["hit",        P + "The Evil Sage-hit.png",         2, 8,  false],
 	]
 
 	for anim_def in anims:
@@ -116,10 +116,10 @@ func _setup_sprite_frames() -> void:
 
 	animated_sprite.sprite_frames = sf
 	animated_sprite.scale = Vector2(1.5, 1.5)
-	# Content center x≈118, frame center x=120 → offset.x = 2
-	# Feet at y≈79, frame center y=64 → 15px below center
-	# Collision 10x20 at y=-1, bottom = 9. offset.y = 9/1.5 - 15 = -9
-	animated_sprite.offset = Vector2(2, -9)
+	# Dark sage: character centered in 192x192 frame
+	# Feet at ~y=140, frame center y=96 → 44px below center
+	# Collision 10x20 at y=-1, bottom = 9. offset.y = 9/1.5 - 44 = -38
+	animated_sprite.offset = Vector2(0, -38)
 	animated_sprite.play("idle")
 
 
