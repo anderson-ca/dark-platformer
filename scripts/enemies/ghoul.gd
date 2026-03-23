@@ -149,7 +149,10 @@ func _face_player() -> void:
 	facing = sign(_player.global_position.x - global_position.x)
 	if facing == 0.0:
 		facing = -1.0
-	animated_sprite.flip_h = facing > 0
+	# Sprite default faces RIGHT: flip_h=false means right, flip_h=true means left
+	animated_sprite.flip_h = facing < 0
+	# Flip attack area to match facing direction
+	attack_area.scale.x = facing
 
 
 func _check_attack_damage() -> void:
@@ -175,6 +178,7 @@ func _enter_state(new_state: State) -> void:
 		State.CHASE:
 			animated_sprite.play("walk")
 		State.ATTACK:
+			_face_player()
 			_has_dealt_damage = false
 			animated_sprite.play("attack")
 		State.HIT:

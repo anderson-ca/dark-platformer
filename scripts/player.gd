@@ -57,6 +57,7 @@ var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
+var is_dead: bool = false
 var shockwave_cooldown_timer: float = 0.0
 const SHOCKWAVE_COOLDOWN := 2.0
 const SHIELD_SPEED_MULT := 0.5
@@ -195,8 +196,22 @@ func _on_attack_hit_enemy(area: Area2D) -> void:
 
 
 func take_damage(_from_position: Vector2) -> void:
-	if is_shielding:
-		return  # shield blocks damage
+	if is_shielding or is_dead:
+		return
+	_play_death()
+
+
+func _play_death() -> void:
+	is_dead = true
+	is_attacking = false
+	is_shielding = false
+	is_shockwaving = false
+	_attack_hitbox.monitoring = false
+	velocity = Vector2.ZERO
+	animated_sprite.play("death")
+	print("Player death: 8 frames @ 8 FPS, waiting 1.5s before respawn")
+	await get_tree().create_timer(1.5).timeout
+	is_dead = false
 	hit_hazard.emit()
 
 
@@ -328,6 +343,7 @@ func reset_abilities() -> void:
 	is_shielding = false
 	_shield_phase = ""
 	is_shockwaving = false
+	is_dead = false
 	shockwave_cooldown_timer = 0.0
 	velocity = Vector2.ZERO
 
@@ -352,6 +368,14 @@ func activate_checkpoint(pos: Vector2) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		velocity.x = 0.0
+		if not is_on_floor():
+			velocity.y += GRAVITY * delta
+			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+		move_and_slide()
+		return
+
 	# Consume one-shot input flags
 	var jump_just_pressed := _key_jump_just
 	var jump_just_released := _key_jump_released
