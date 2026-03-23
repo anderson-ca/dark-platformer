@@ -117,6 +117,57 @@ func _setup_room1_props() -> void:
 	wall.add_child(col)
 	room_geometry.add_child(wall)
 
+	# Campfire with roasting pig
+	_create_campfire(Vector2(500, 640))
+
+
+func _create_campfire(pos: Vector2) -> void:
+	var campfire := Node2D.new()
+	campfire.name = "Campfire"
+	campfire.position = pos
+	mg_container.add_child(campfire)
+
+	# Fire — animated spritesheet: 468x38, 12 frames of 39x38
+	var fire_path := "res://assets/props/room_1/zone_1/midground/animated/Purple Wild 39x38.png"
+	var fire_tex := load(fire_path) as Texture2D
+	var FRAME_W := 39
+	var FRAME_H := 38
+	var frame_count := int(fire_tex.get_width()) / FRAME_W
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("burn")
+	sf.set_animation_speed("burn", 10.0)
+	sf.set_animation_loop("burn", true)
+	for i in range(frame_count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = fire_tex
+		atlas.region = Rect2(i * FRAME_W, 0, FRAME_W, FRAME_H)
+		sf.add_frame("burn", atlas)
+
+	var fire := AnimatedSprite2D.new()
+	fire.name = "Fire"
+	fire.sprite_frames = sf
+	fire.scale = Vector2(2.5, 2.5)
+	fire.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	fire.position = Vector2(0, -FRAME_H * 2.5 / 2.0)  # bottom of fire at ground
+	fire.play("burn")
+	campfire.add_child(fire)
+
+	# Pig on spit — positioned above the fire
+	var pig_tex := load("res://assets/props/room_1/zone_1/midground/pig.png") as Texture2D
+	var pig := Sprite2D.new()
+	pig.name = "Pig"
+	pig.texture = pig_tex
+	pig.scale = Vector2(2.5, 2.5)
+	pig.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	pig.position = Vector2(0, -FRAME_H * 2.5 * 0.75)  # above the fire center
+	campfire.add_child(pig)
+
+	print("Campfire: ", frame_count, " fire frames, fire scale=2.5, pig scale=2.5")
+	print("  fire pos=", fire.position, " pig pos=", pig.position)
+
 
 func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
 	# Surface edge: row 0, col 2 — thin rocky top edge
