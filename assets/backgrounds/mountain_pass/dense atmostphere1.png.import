@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgpfkcfojh3lu"
-path="res://.godot/imported/fg_tall_grass_md.png-11d40dda4da4fa7955bce7759b8135b0.ctex"
+uid="uid://crs0wx7tj3k86"
+path="res://.godot/imported/dense atmostphere1.png-b2a603ffaa06404fb6c8a24e1444e90f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/foreground/fg_tall_grass_md.png"
-dest_files=["res://.godot/imported/fg_tall_grass_md.png-11d40dda4da4fa7955bce7759b8135b0.ctex"]
+source_file="res://assets/backgrounds/mountain_pass/dense atmostphere1.png"
+dest_files=["res://.godot/imported/dense atmostphere1.png-b2a603ffaa06404fb6c8a24e1444e90f.ctex"]
 
 [params]
 

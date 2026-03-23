@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbkxqjgt7f0tk"
-path="res://.godot/imported/mg_top_vines_sm.png-621547f26a4364aef62b7e374370a4e3.ctex"
+path="res://.godot/imported/mg_top_vines_sm.png-dd9501220607336cc7bc4eb09b753ba3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/room_1/shared/mg_top_vines_sm.png"
-dest_files=["res://.godot/imported/mg_top_vines_sm.png-621547f26a4364aef62b7e374370a4e3.ctex"]
+source_file="res://assets/props/room_1/shared/midground/mg_top_vines_sm.png"
+dest_files=["res://.godot/imported/mg_top_vines_sm.png-dd9501220607336cc7bc4eb09b753ba3.ctex"]
 
 [params]
 
