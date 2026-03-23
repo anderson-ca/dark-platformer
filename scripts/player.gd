@@ -160,20 +160,20 @@ func _setup_dust_sprites() -> void:
 
 	# 1. Run dust — jump_land_dust.png at 60% scale, looping, 10 fps
 	var run_sf: SpriteFrames = make_dust_frames.call(E + "jump_land_dust.png", "run", 5, 10.0, true)
-	_dust_run = make_dust_sprite.call("DustRun", run_sf, Vector2(0, feet_y), Vector2(0.2, 0.2))
+	_dust_run = make_dust_sprite.call("DustRun", run_sf, Vector2(0, feet_y), Vector2(0.1, 0.1))
 
 	# 2. Land dust — jump_land_dust.png, one-shot, 12 fps
 	var land_sf: SpriteFrames = make_dust_frames.call(E + "jump_land_dust.png", "land", 5, 12.0, false)
-	_dust_land = make_dust_sprite.call("DustLand", land_sf, Vector2(0, feet_y), Vector2(0.25, 0.25))
+	_dust_land = make_dust_sprite.call("DustLand", land_sf, Vector2(0, feet_y), Vector2(0.125, 0.125))
 	_dust_land.animation_finished.connect(_on_land_dust_finished)
 
 	# 3. Wall dust — wall_dust.png, looping, 10 fps
 	var wall_sf: SpriteFrames = make_dust_frames.call(E + "wall_dust.png", "wall", 6, 10.0, true)
-	_dust_wall = make_dust_sprite.call("DustWall", wall_sf, Vector2.ZERO, Vector2(0.25, 0.25))
+	_dust_wall = make_dust_sprite.call("DustWall", wall_sf, Vector2.ZERO, Vector2(0.125, 0.125))
 
 	# 4. Dash dust — floor_dash_dust.png, one-shot, 15 fps
 	var dash_sf: SpriteFrames = make_dust_frames.call(E + "floor_dash_dust.png", "dash", 7, 15.0, false)
-	_dust_dash = make_dust_sprite.call("DustDash", dash_sf, Vector2(0, feet_y), Vector2(0.25, 0.25))
+	_dust_dash = make_dust_sprite.call("DustDash", dash_sf, Vector2(0, feet_y), Vector2(0.125, 0.125))
 	_dust_dash.animation_finished.connect(_on_dash_dust_finished)
 
 
