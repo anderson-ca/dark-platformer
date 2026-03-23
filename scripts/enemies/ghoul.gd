@@ -208,7 +208,7 @@ func take_damage(from_position: Vector2) -> void:
 		return
 	health -= 1
 	# Knockback away from damage source
-	var kb_dir := sign(global_position.x - from_position.x)
+	var kb_dir: float = sign(global_position.x - from_position.x)
 	if kb_dir == 0.0:
 		kb_dir = -facing
 	velocity.x = kb_dir * 120.0
