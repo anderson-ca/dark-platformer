@@ -20,6 +20,7 @@ var current_room_index: int = 0
 @onready var fg_container: Node2D = $Foreground
 @onready var hud_node: CanvasLayer = $HUD
 @onready var rain: CPUParticles2D = $Player/Camera2D/Rain
+@onready var rain_splash: CPUParticles2D = $Player/Camera2D/RainSplash
 
 
 func _ready() -> void:
@@ -27,6 +28,11 @@ func _ready() -> void:
 	var drop_img := Image.create(1, 8, false, Image.FORMAT_RGBA8)
 	drop_img.fill(Color.WHITE)
 	rain.texture = ImageTexture.create_from_image(drop_img)
+
+	# Splash texture — tiny 2x2 white dot
+	var splash_img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	splash_img.fill(Color.WHITE)
+	rain_splash.texture = ImageTexture.create_from_image(splash_img)
 
 	_tileset_tex = load("res://assets/tilesets/mountain_pass/tileset 64x64.png") as Texture2D
 

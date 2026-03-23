@@ -116,7 +116,7 @@ drag_horizontal_enabled = true
 z_index = 10
 position = Vector2(0, -280)
 amount = 450
-lifetime = 0.8
+lifetime = 0.42
 emission_shape = 3
 emission_rect_extents = Vector2(500, 10)
 direction = Vector2(-0.2, 1)
@@ -127,6 +127,23 @@ initial_velocity_max = 600.0
 scale_amount_min = 0.3
 scale_amount_max = 2.0
 color = Color(0.7, 0.75, 0.85, 0.15)
+
+[node name="RainSplash" type="CPUParticles2D" parent="Player/Camera2D"]
+z_index = 10
+position = Vector2(0, 9)
+amount = 60
+lifetime = 0.2
+explosiveness = 0.0
+emission_shape = 3
+emission_rect_extents = Vector2(420, 1)
+direction = Vector2(0, -1)
+spread = 45.0
+gravity = Vector2(0, 150)
+initial_velocity_min = 10.0
+initial_velocity_max = 30.0
+scale_amount_min = 0.3
+scale_amount_max = 1.0
+color = Color(0.75, 0.8, 0.9, 0.08)
 
 [node name="Foreground" type="Node2D" parent="." unique_id=2125731460]
 z_index = 2
