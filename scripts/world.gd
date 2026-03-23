@@ -118,7 +118,7 @@ func _setup_room1_props() -> void:
 	room_geometry.add_child(wall)
 
 	# Campfire with roasting pig
-	_create_campfire(Vector2(500, 640))
+	_create_campfire(Vector2(350, 640))
 
 
 func _create_campfire(pos: Vector2) -> void:
@@ -146,26 +146,27 @@ func _create_campfire(pos: Vector2) -> void:
 		atlas.region = Rect2(i * FRAME_W, 0, FRAME_W, FRAME_H)
 		sf.add_frame("burn", atlas)
 
+	var sc := 1.2
 	var fire := AnimatedSprite2D.new()
 	fire.name = "Fire"
 	fire.sprite_frames = sf
-	fire.scale = Vector2(2.5, 2.5)
+	fire.scale = Vector2(sc, sc)
 	fire.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	fire.position = Vector2(0, -FRAME_H * 2.5 / 2.0)  # bottom of fire at ground
+	fire.position = Vector2(0, -FRAME_H * sc / 2.0)  # bottom of fire at ground
 	fire.play("burn")
 	campfire.add_child(fire)
 
-	# Pig on spit — positioned above the fire
+	# Pig on spit — just above the flames
 	var pig_tex := load("res://assets/props/room_1/zone_1/midground/pig.png") as Texture2D
 	var pig := Sprite2D.new()
 	pig.name = "Pig"
 	pig.texture = pig_tex
-	pig.scale = Vector2(2.5, 2.5)
+	pig.scale = Vector2(sc, sc)
 	pig.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	pig.position = Vector2(0, -FRAME_H * 2.5 * 0.75)  # above the fire center
+	pig.position = Vector2(0, -FRAME_H * sc * 0.55)  # sitting just above fire
 	campfire.add_child(pig)
 
-	print("Campfire: ", frame_count, " fire frames, fire scale=2.5, pig scale=2.5")
+	print("Campfire: ", frame_count, " frames, scale=", sc, " pos=", pos)
 	print("  fire pos=", fire.position, " pig pos=", pig.position)
 
 
