@@ -26,6 +26,8 @@ var recover_timer: float = 0.0
 var reposition_timer: float = 0.0
 var _player: CharacterBody2D = null
 var _has_dealt_damage: bool = false
+var _shield_blocked_timer: float = 0.0
+const SHIELD_BACK_OFF_TIME := 1.5
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
@@ -99,8 +101,9 @@ func _physics_process(delta: float) -> void:
 		velocity.y += GRAVITY * delta
 		velocity.y = min(velocity.y, MAX_FALL_SPEED)
 
-	# Tick cooldown
+	# Tick cooldowns
 	attack_cooldown_timer = max(attack_cooldown_timer - delta, 0.0)
+	_shield_blocked_timer = max(_shield_blocked_timer - delta, 0.0)
 
 	match state:
 		State.IDLE:
@@ -159,6 +162,17 @@ func _chase_player(_delta: float) -> void:
 
 	_face_player()
 	var dist := global_position.distance_to(_player.global_position)
+
+	# If player is shielding and we're close, back off
+	if _player.is_shielding and dist < ATTACK_RANGE * 2.0:
+		_shield_blocked_timer = SHIELD_BACK_OFF_TIME
+		_enter_state(State.RECOVER)
+		return
+
+	# If recently blocked by shield, don't rush back in
+	if _shield_blocked_timer > 0.0 and dist < ATTACK_RANGE * 2.0:
+		velocity.x = 0.0
+		return
 
 	# Can attack if in range AND cooldown is done
 	if dist < ATTACK_RANGE and attack_cooldown_timer <= 0.0:
@@ -275,6 +289,12 @@ func take_knockback(from_position: Vector2) -> void:
 		kb_dir = -facing
 	velocity.x = kb_dir * 150.0
 	velocity.y = -60.0
+
+
+func apply_repel(dir: float, force: float) -> void:
+	if state == State.DEATH:
+		return
+	velocity.x = dir * force
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:

@@ -59,6 +59,9 @@ var _combo_timer: float = 0.0
 const COMBO_WINDOW_TIME := 0.4
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
+var _shield_zone: Area2D
+const SHIELD_REPEL_FORCE := 200.0
+const SHIELD_ZONE_WIDTH := 45.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var is_dead: bool = false
@@ -102,6 +105,7 @@ func _ready() -> void:
 	_setup_dust_sprites()
 	_setup_player_light()
 	_setup_attack_hitbox()
+	_setup_shield_zone()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
@@ -205,6 +209,34 @@ func _setup_attack_hitbox() -> void:
 	_attack_hitbox.area_entered.connect(_on_attack_hit_enemy)
 
 
+func _setup_shield_zone() -> void:
+	_shield_zone = Area2D.new()
+	_shield_zone.name = "ShieldZone"
+	_shield_zone.collision_layer = 0
+	_shield_zone.collision_mask = 2  # detect enemy bodies (layer 2)
+	_shield_zone.monitoring = false
+
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(SHIELD_ZONE_WIDTH, 30)
+	var col := CollisionShape2D.new()
+	col.shape = shape
+	col.position = Vector2(SHIELD_ZONE_WIDTH / 2.0, -8)  # in front of player
+	_shield_zone.add_child(col)
+	add_child(_shield_zone)
+	print("ShieldZone: ", SHIELD_ZONE_WIDTH, "px wide, repel force=", SHIELD_REPEL_FORCE)
+
+
+func _repel_enemies_from_shield() -> void:
+	if not _shield_zone.monitoring:
+		return
+	for body in _shield_zone.get_overlapping_bodies():
+		if body.is_in_group("enemies") and body.has_method("apply_repel"):
+			var dir: float = sign(body.global_position.x - global_position.x)
+			if dir == 0.0:
+				dir = facing
+			body.apply_repel(dir, SHIELD_REPEL_FORCE)
+
+
 func _on_attack_hit_enemy(area: Area2D) -> void:
 	var enemy := area.get_parent()
 	if enemy.has_method("take_damage"):
@@ -239,6 +271,7 @@ func _play_hit(from_position: Vector2) -> void:
 	_combo_window = false
 	is_shielding = false
 	_shield_phase = ""
+	_shield_zone.monitoring = false
 	is_shockwaving = false
 	_attack_hitbox.monitoring = false
 
@@ -281,6 +314,7 @@ func _play_death() -> void:
 	is_shielding = false
 	is_shockwaving = false
 	_attack_hitbox.monitoring = false
+	_shield_zone.monitoring = false
 	velocity = Vector2.ZERO
 	animated_sprite.play("death")
 	print("Player death: 8 frames @ 8 FPS, waiting 1.5s before respawn")
@@ -498,6 +532,7 @@ func _physics_process(delta: float) -> void:
 		is_attacking = false
 		is_shielding = false
 		_shield_phase = ""
+		_shield_zone.monitoring = false
 		shockwave_cooldown_timer = SHOCKWAVE_COOLDOWN
 		velocity.x = 0.0
 		animated_sprite.play("shockwave")
@@ -517,12 +552,18 @@ func _physics_process(delta: float) -> void:
 			is_shielding = true
 			_shield_phase = "up"
 			animated_sprite.play("shield_up")
+			# Activate shield zone facing player direction
+			_shield_zone.scale.x = facing
+			_shield_zone.monitoring = true
 	elif is_shielding and not shield_held:
 		# Release shield
 		_shield_phase = "down"
 		animated_sprite.play("shield_down")
+		_shield_zone.monitoring = false
 
 	if is_shielding:
+		# Repel enemies each frame
+		_repel_enemies_from_shield()
 		# No movement while shielding — stationary
 		velocity.x = 0.0
 		if not is_on_floor():
