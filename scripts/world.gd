@@ -113,39 +113,35 @@ func _setup_room1_props() -> void:
 
 
 func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
-	# Tileset atlas coords (col, row) in 12x12 grid of 64x64 tiles
-	# Surface edge: row 0 — thin rocky top edge (content at y=59-63 in tile)
-	# Fill: rows 7-10 — solid dark rock
-	var surface_tiles := [Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
-	# Row 10 tiles: brightest and most uniform rock texture (all avg 17-18)
-	var fill_tiles := [
-		Vector2i(0, 10), Vector2i(1, 10), Vector2i(2, 10), Vector2i(3, 10),
-		Vector2i(4, 10), Vector2i(7, 10), Vector2i(8, 10), Vector2i(9, 10),
-	]
+	# Surface edge: row 0, col 2 — thin rocky top edge
+	var surface_coord := Vector2i(2, 0)
+	# ONE fill tile: (4,10) — brightest uniform rock, avg brightness 18.8
+	var fill_coord := Vector2i(4, 10)
 
-	var cols := int(ceil(gw / TILE_SIZE))
+	var cols: int = int(ceil(gw / float(TILE_SIZE)))
+	var fill_rows: int = 3  # 3 rows of fill = 192px below surface
+	var total_rows: int = 1 + fill_rows  # 1 surface + 3 fill
+	var expected: int = cols * total_rows
+	var placed: int = 0
+
 	var container := Node2D.new()
 	container.name = "GroundTiles"
 	container.z_index = -1
 	room_geometry.add_child(container)
 
-	# Surface edge row: one tile above ground level
-	for c in range(cols):
-		var atlas_coord: Vector2i = surface_tiles[c % surface_tiles.size()]
-		var sprite := _make_tile_sprite(atlas_coord)
-		sprite.position = Vector2(gx + c * TILE_SIZE, gy - TILE_SIZE)
-		container.add_child(sprite)
-
-	# Fill rows: at ground level and below (2 rows = 128px)
-	for row_idx in range(2):
+	# Brute force: every cell gets a tile, no exceptions
+	for r in range(total_rows):
+		var tile_y: float = gy - TILE_SIZE + r * TILE_SIZE
 		for c in range(cols):
-			var atlas_coord: Vector2i = fill_tiles[(c + row_idx * 7) % fill_tiles.size()]
-			var sprite := _make_tile_sprite(atlas_coord)
-			sprite.position = Vector2(gx + c * TILE_SIZE, gy + row_idx * TILE_SIZE)
+			var tile_x: float = gx + c * TILE_SIZE
+			var coord: Vector2i = surface_coord if r == 0 else fill_coord
+			var sprite := _make_tile_sprite(coord)
+			sprite.position = Vector2(tile_x, tile_y)
 			container.add_child(sprite)
+			placed += 1
 
-	print("Ground tiles: surface=", surface_tiles, " fill=", fill_tiles.slice(0, 4), "...")
-	print("  ", cols, " columns, 3 rows (surface + 2 fill), from y=", gy - TILE_SIZE, " to y=", gy + 2 * TILE_SIZE)
+	print("Ground tiles: ", cols, "x", total_rows, " = ", placed, " placed (expected ", expected, ")")
+	print("  X: ", gx, " to ", gx + cols * TILE_SIZE, "  Y: ", gy - TILE_SIZE, " to ", gy - TILE_SIZE + total_rows * TILE_SIZE)
 
 
 func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:
