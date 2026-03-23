@@ -176,14 +176,8 @@ func _chase_player(_delta: float) -> void:
 	_face_player()
 	var dist := global_position.distance_to(_player.global_position)
 
-	# If player is shielding and we're close, back off
+	# If player is shielding and we're close, just stop — don't retreat
 	if _player.is_shielding and dist < ATTACK_RANGE * 2.0:
-		_shield_blocked_timer = SHIELD_BACK_OFF_TIME
-		_enter_state(State.RECOVER)
-		return
-
-	# If recently blocked by shield, don't rush back in
-	if _shield_blocked_timer > 0.0 and dist < ATTACK_RANGE * 2.0:
 		velocity.x = 0.0
 		return
 

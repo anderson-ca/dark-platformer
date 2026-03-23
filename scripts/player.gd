@@ -222,21 +222,27 @@ func _setup_shield_zone() -> void:
 	col.position = Vector2(SHIELD_ZONE_WIDTH / 2.0, -8)  # in front of player
 	_shield_zone.add_child(col)
 	add_child(_shield_zone)
-	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, NO push force (hard clamp)")
+	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, 360° protection, NO push force, ghoul stops in place")
 
 
 func _repel_enemies_from_shield() -> void:
-	# Hard wall: clamp every enemy to stay outside shield radius
-	var shield_radius := SHIELD_ZONE_WIDTH
+	# Hard wall: only block enemies on the side the player is facing
+	var shield_edge_x: float = global_position.x + facing * SHIELD_ZONE_WIDTH
+	print("Shield wall: facing=", facing, " edge_x=", shield_edge_x, " player_x=", global_position.x)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		var dx: float = enemy.global_position.x - global_position.x
-		var abs_dx: float = absf(dx)
-		if abs_dx < shield_radius:
-			# Enemy is inside shield — push to boundary, zero velocity toward player
-			var push_dir: float = sign(dx) if dx != 0.0 else facing
-			enemy.global_position.x = global_position.x + push_dir * shield_radius
-			# Only zero velocity if moving toward player
-			if sign(enemy.velocity.x) != sign(push_dir):
+		var enemy_x: float = enemy.global_position.x
+		# Only affect enemies on the side we're facing
+		var enemy_side: float = sign(enemy_x - global_position.x)
+		if enemy_side != facing and enemy_side != 0.0:
+			continue  # enemy is behind the shield
+		# Check if enemy is closer than shield edge
+		if facing > 0 and enemy_x < shield_edge_x:
+			enemy.global_position.x = shield_edge_x
+			if enemy.velocity.x < 0.0:  # moving toward player
+				enemy.velocity.x = 0.0
+		elif facing < 0 and enemy_x > shield_edge_x:
+			enemy.global_position.x = shield_edge_x
+			if enemy.velocity.x > 0.0:  # moving toward player
 				enemy.velocity.x = 0.0
 
 
