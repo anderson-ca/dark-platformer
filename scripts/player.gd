@@ -231,16 +231,16 @@ func _repel_enemies_from_shield() -> void:
 		return
 	var shield_edge_x: float = global_position.x + facing * SHIELD_ZONE_WIDTH
 	for body in _shield_zone.get_overlapping_bodies():
-		if body.is_in_group("enemies") and body.has_method("apply_repel"):
-			var dir: float = sign(body.global_position.x - global_position.x)
-			if dir == 0.0:
-				dir = facing
-			# Place enemy at shield edge + small push
-			var target_x: float = shield_edge_x + dir * 5.0
-			var diff: float = target_x - body.global_position.x
-			body.global_position.x += diff * 0.3  # smooth push to edge
-			# Kill velocity toward player, add tiny push
-			body.apply_repel(dir, SHIELD_REPEL_FORCE)
+		if not body.is_in_group("enemies"):
+			continue
+		# Check if enemy is inside the shield zone (between player and edge)
+		var enemy_x: float = body.global_position.x
+		if facing > 0 and enemy_x < shield_edge_x:
+			body.global_position.x = shield_edge_x
+			body.velocity.x = 0.0
+		elif facing < 0 and enemy_x > shield_edge_x:
+			body.global_position.x = shield_edge_x
+			body.velocity.x = 0.0
 
 
 func _on_attack_hit_enemy(area: Area2D) -> void:
