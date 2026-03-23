@@ -249,16 +249,22 @@ func take_damage(from_position: Vector2) -> void:
 	if state == State.DEATH:
 		return
 	health -= 1
+	print("Ghoul hit! health=", health, " (during ", State.keys()[state], ")")
 	# Knockback away from damage source
 	var kb_dir: float = sign(global_position.x - from_position.x)
 	if kb_dir == 0.0:
 		kb_dir = -facing
-	velocity.x = kb_dir * 120.0
-	velocity.y = -80.0
-	attack_count = 0
-	attack_cooldown_timer = 0.0
-	_enter_state(State.HIT)
-	print("Ghoul hit! health=", health)
+	if state == State.ATTACK:
+		# Enemy attacks CANNOT be interrupted — take damage but continue attack
+		velocity.x = kb_dir * 40.0  # reduced knockback during attack
+		if health <= 0:
+			_enter_state(State.DEATH)
+	else:
+		velocity.x = kb_dir * 120.0
+		velocity.y = -80.0
+		attack_count = 0
+		attack_cooldown_timer = 0.0
+		_enter_state(State.HIT)
 
 
 func take_knockback(from_position: Vector2) -> void:

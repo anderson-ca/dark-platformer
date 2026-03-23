@@ -122,6 +122,8 @@ func _setup_room1_props() -> void:
 	# Zone 1 boundary wall — invisible, blocks player at x=2400
 	var wall := StaticBody2D.new()
 	wall.name = "zone_1_boundary"
+	wall.set_collision_layer_value(1, true)
+	wall.set_collision_layer_value(3, true)
 	wall.position = Vector2(2400, 360)  # centered vertically in 720px room
 	print("Zone 1 boundary: 900 -> 2400")
 	var shape := RectangleShape2D.new()
@@ -253,6 +255,9 @@ func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:
 func _create_solid(x: float, y: float, w: float, h: float) -> void:
 	var body := StaticBody2D.new()
 	body.position = Vector2(x + w / 2.0, y + h / 2.0)
+	# Ground on layers 1 + 3 so both player (mask 1|3) and enemies (mask 3) collide
+	body.set_collision_layer_value(1, true)
+	body.set_collision_layer_value(3, true)
 
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(w, h)

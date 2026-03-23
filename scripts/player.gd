@@ -53,6 +53,10 @@ var facing: float = 1.0
 var is_wall_sliding: bool = false
 var wall_dir: float = 0.0
 var is_attacking: bool = false
+var _combo_stage: int = 0  # 0=none, 1=attack1 playing, 2=attack2 playing
+var _combo_window: bool = false
+var _combo_timer: float = 0.0
+const COMBO_WINDOW_TIME := 0.4
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_phase: String = ""  # "up", "hold", "down"
@@ -88,6 +92,12 @@ var _was_dashing: bool = false
 
 func _ready() -> void:
 	add_to_group("player")
+	# Player on layer 1, collides with ground (layers 1+3) but NOT enemies (layer 2)
+	set_collision_layer_value(1, true)
+	set_collision_layer_value(2, false)
+	set_collision_mask_value(1, true)
+	set_collision_mask_value(2, false)
+	set_collision_mask_value(3, true)
 	_setup_sprite_frames()
 	_setup_dust_sprites()
 	_setup_player_light()
@@ -112,7 +122,8 @@ func _setup_sprite_frames() -> void:
 		["wall_slide",  P + "The Sage-Wall Slide.png",  4, 8,  true],
 		["death",       P + "The Sage-Death.png",       8, 8,  false],
 		["hit",         P + "The Sage-hit.png",         2, 8,  false],
-		["attack",      P + "The Sage-Orb attack.png", 16, 12, false],
+		["attack1",     P + "The Sage-Orb attack.png", 8, 12, false, 0],
+		["attack2",     P + "The Sage-Orb attack.png", 8, 12, false, 8],
 		["shield_up",   P + "The Sage-Shield up.png",    4, 10, false],
 		["shield_hold", P + "The Sage-shield hold.png",  8, 10, true],
 		["shield_down", P + "The Sage-shield down.png",  4, 10, false],
@@ -125,6 +136,7 @@ func _setup_sprite_frames() -> void:
 		var frame_count: int = anim_def[2]
 		var fps: float = anim_def[3]
 		var looping: bool = anim_def[4]
+		var start_frame: int = anim_def[5] if anim_def.size() > 5 else 0
 
 		var texture := load(file_path) as Texture2D
 
@@ -135,12 +147,13 @@ func _setup_sprite_frames() -> void:
 		for i in range(frame_count):
 			var atlas_tex := AtlasTexture.new()
 			atlas_tex.atlas = texture
-			atlas_tex.region = Rect2(i * FRAME_W, 0, FRAME_W, FRAME_H)
+			atlas_tex.region = Rect2((start_frame + i) * FRAME_W, 0, FRAME_W, FRAME_H)
 			sf.add_frame(anim_name, atlas_tex)
 
 	animated_sprite.sprite_frames = sf
 	for anim_def in anims:
 		print("  ", anim_def[0], ": ", anim_def[2], " frames @ ", anim_def[3], " FPS -> ", anim_def[1])
+	print("Combo: attack1 (frames 0-7) -> ", COMBO_WINDOW_TIME, "s window -> attack2 (frames 8-15)")
 	animated_sprite.scale = Vector2(1.5, 1.5)
 	# Sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
@@ -222,6 +235,8 @@ func _play_hit(from_position: Vector2) -> void:
 	_is_taking_hit = true
 	is_invincible = true
 	is_attacking = false
+	_combo_stage = 0
+	_combo_window = false
 	is_shielding = false
 	_shield_phase = ""
 	is_shockwaving = false
@@ -261,6 +276,8 @@ func _play_hit(from_position: Vector2) -> void:
 func _play_death() -> void:
 	is_dead = true
 	is_attacking = false
+	_combo_stage = 0
+	_combo_window = false
 	is_shielding = false
 	is_shockwaving = false
 	_attack_hitbox.monitoring = false
@@ -375,8 +392,17 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_animation_finished() -> void:
-	if animated_sprite.animation == "attack":
+	if animated_sprite.animation == "attack1":
+		_attack_hitbox.monitoring = false
+		if _combo_stage == 1:
+			# Open combo window — player can press attack for attack2
+			_combo_window = true
+			_combo_timer = COMBO_WINDOW_TIME
+			is_attacking = false  # brief movement window
+	elif animated_sprite.animation == "attack2":
 		is_attacking = false
+		_combo_stage = 0
+		_combo_window = false
 		_attack_hitbox.monitoring = false
 	elif animated_sprite.animation == "shield_up":
 		_shield_phase = "hold"
@@ -397,6 +423,9 @@ func reset_abilities() -> void:
 	dash_cooldown_timer = 0.0
 	has_air_dash = true
 	is_attacking = false
+	_combo_stage = 0
+	_combo_window = false
+	_combo_timer = 0.0
 	is_shielding = false
 	_shield_phase = ""
 	is_shockwaving = false
@@ -452,6 +481,11 @@ func _physics_process(delta: float) -> void:
 
 	# Timers
 	shockwave_cooldown_timer = max(shockwave_cooldown_timer - delta, 0.0)
+	if _combo_window:
+		_combo_timer -= delta
+		if _combo_timer <= 0.0:
+			_combo_window = false
+			_combo_stage = 0
 
 	# Fall respawn check
 	if global_position.y > fall_respawn_y:
@@ -500,14 +534,26 @@ func _physics_process(delta: float) -> void:
 		animated_sprite.position.x = 0.0
 		return
 
-	# --- Attack ---
-	if attack_just_pressed and is_on_floor() and not is_attacking and dash_timer <= 0.0:
-		is_attacking = true
-		velocity.x = 0.0
-		animated_sprite.play("attack")
-		# Enable attack hitbox, flip based on facing
-		_attack_hitbox.scale.x = facing
-		_attack_hitbox.monitoring = true
+	# --- Attack / Combo ---
+	if attack_just_pressed and is_on_floor() and dash_timer <= 0.0:
+		if not is_attacking and _combo_stage == 0:
+			# Start combo: attack1
+			is_attacking = true
+			_combo_stage = 1
+			_combo_window = false
+			velocity.x = 0.0
+			animated_sprite.play("attack1")
+			_attack_hitbox.scale.x = facing
+			_attack_hitbox.monitoring = true
+		elif _combo_window and _combo_stage == 1:
+			# Combo hit: attack2
+			is_attacking = true
+			_combo_stage = 2
+			_combo_window = false
+			velocity.x = 0.0
+			animated_sprite.play("attack2")
+			_attack_hitbox.scale.x = facing
+			_attack_hitbox.monitoring = true
 
 	if is_attacking:
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
