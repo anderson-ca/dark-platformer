@@ -38,6 +38,12 @@ func _ready() -> void:
 
 	player.hit_hazard.connect(_on_hazard)
 
+	# Dark atmosphere — darken everything, player/campfire lights punch through
+	var canvas_mod := CanvasModulate.new()
+	canvas_mod.name = "DarkAtmosphere"
+	canvas_mod.color = Color(0.15, 0.15, 0.2, 1.0)
+	add_child(canvas_mod)
+
 	load_room(0)
 
 
@@ -166,6 +172,18 @@ func _create_campfire(pos: Vector2) -> void:
 	pig.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	pig.position = Vector2(0, -FRAME_H * sc * 0.55)  # sitting just above fire
 	campfire.add_child(pig)
+
+	# Campfire light — warm orange glow
+	var fire_light := PointLight2D.new()
+	fire_light.name = "FireLight"
+	fire_light.color = Color(1.0, 0.7, 0.3)
+	fire_light.energy = 1.2
+	fire_light.texture = _make_light_texture()
+	fire_light.texture_scale = 1.5
+	fire_light.position = Vector2(0, -FRAME_H * sc * 0.5)
+	fire_light.shadow_enabled = false
+	fire_light.blend_mode = Light2D.BLEND_MODE_ADD
+	campfire.add_child(fire_light)
 
 	print("Campfire: Custom Fires-Wild.png ", fire_tex.get_width(), "x", fire_tex.get_height(), ", ", frame_count, " frames of ", FRAME_W, "x", FRAME_H)
 	print("  scale=", sc, " pos=", pos, " fire=", fire.position, " pig=", pig.position)
@@ -331,6 +349,20 @@ func _on_checkpoint_entered(_body: Node2D) -> void:
 func _on_goal_reached() -> void:
 	var next_index := (current_room_index + 1) % _RoomData.ROOMS.size()
 	load_room(next_index)
+
+
+func _make_light_texture() -> ImageTexture:
+	var size := 256
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var radius := size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist := Vector2(x, y).distance_to(center)
+			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
+			alpha = alpha * alpha  # quadratic falloff for soft edges
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	return ImageTexture.create_from_image(img)
 
 
 func _on_hazard() -> void:

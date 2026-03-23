@@ -76,6 +76,7 @@ var _was_dashing: bool = false
 func _ready() -> void:
 	_setup_sprite_frames()
 	_setup_dust_sprites()
+	_setup_player_light()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
@@ -126,6 +127,32 @@ func _setup_sprite_frames() -> void:
 	# offset.y = 9/1.5 - (121-96) = 6 - 25 = -19
 	animated_sprite.offset = Vector2(0, -19)
 	animated_sprite.play("idle")
+
+
+func _setup_player_light() -> void:
+	var size := 256
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var radius := size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist := Vector2(x, y).distance_to(center)
+			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
+			alpha = alpha * alpha
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	var light_tex := ImageTexture.create_from_image(img)
+
+	var light := PointLight2D.new()
+	light.name = "PlayerLight"
+	light.color = Color(1.0, 0.95, 0.8)
+	light.energy = 1.3
+	light.texture = light_tex
+	light.texture_scale = 2.5
+	light.position = Vector2(0, -5)  # roughly center of player body
+	light.shadow_enabled = false
+	light.blend_mode = Light2D.BLEND_MODE_ADD
+	add_child(light)
+	print("PlayerLight: energy=1.3, scale=2.5, color=", light.color)
 
 
 func _setup_dust_sprites() -> void:
