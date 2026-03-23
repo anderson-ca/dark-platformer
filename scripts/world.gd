@@ -117,14 +117,10 @@ func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
 	# Surface edge: row 0 — thin rocky top edge (content at y=59-63 in tile)
 	# Fill: rows 7-10 — solid dark rock
 	var surface_tiles := [Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
-	# Only use tiles with uniform rock texture (avg center brightness > 17)
-	# Excluded: (1,8), (5,8), (5,9), (6,8), (6,9), (10,7), (10,8) — dark/empty interiors
+	# Row 10 tiles: brightest and most uniform rock texture (all avg 17-18)
 	var fill_tiles := [
-		Vector2i(0, 7), Vector2i(1, 7), Vector2i(2, 7), Vector2i(3, 7),
-		Vector2i(4, 7), Vector2i(7, 7), Vector2i(8, 7), Vector2i(9, 7),
-		Vector2i(0, 8), Vector2i(2, 8), Vector2i(3, 8), Vector2i(4, 8),
-		Vector2i(0, 9), Vector2i(1, 9), Vector2i(2, 9), Vector2i(3, 9),
-		Vector2i(4, 9), Vector2i(9, 9), Vector2i(0, 10), Vector2i(1, 10),
+		Vector2i(0, 10), Vector2i(1, 10), Vector2i(2, 10), Vector2i(3, 10),
+		Vector2i(4, 10), Vector2i(7, 10), Vector2i(8, 10), Vector2i(9, 10),
 	]
 
 	var cols := int(ceil(gw / TILE_SIZE))
