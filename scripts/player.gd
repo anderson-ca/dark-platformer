@@ -52,6 +52,7 @@ var has_air_dash: bool = true
 var facing: float = 1.0
 var is_wall_sliding: bool = false
 var wall_dir: float = 0.0
+var is_attacking: bool = false
 
 # Raw input tracking
 var _key_left: bool = false
@@ -59,6 +60,7 @@ var _key_right: bool = false
 var _key_jump_just: bool = false
 var _key_jump_released: bool = false
 var _key_dash_just: bool = false
+var _key_attack_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -74,6 +76,7 @@ var _was_dashing: bool = false
 func _ready() -> void:
 	_setup_sprite_frames()
 	_setup_dust_sprites()
+	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
 func _setup_sprite_frames() -> void:
@@ -93,6 +96,7 @@ func _setup_sprite_frames() -> void:
 		["wall_slide", P + "The Evil Sage-Wall Slide.png",  4, 8,  true],
 		["death",      P + "The Evil Sage-Death.png",       8, 8,  false],
 		["hit",        P + "The Evil Sage-hit.png",         2, 8,  false],
+		["attack",     P + "The Evil Sage-Orb attack.png", 16, 12, false],
 	]
 
 	for anim_def in anims:
@@ -115,6 +119,7 @@ func _setup_sprite_frames() -> void:
 			sf.add_frame(anim_name, atlas_tex)
 
 	animated_sprite.sprite_frames = sf
+	print("Attack animation: 16 frames @ 12 FPS (duration: ", 16.0 / 12.0, "s)")
 	animated_sprite.scale = Vector2(1.5, 1.5)
 	# Dark sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
@@ -186,6 +191,13 @@ func _on_dash_dust_finished() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Mouse click — attack
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+			_key_attack_just = true
+		return
+
 	if not (event is InputEventKey):
 		return
 	var key_event := event as InputEventKey
@@ -204,6 +216,14 @@ func _input(event: InputEvent) -> void:
 		KEY_SHIFT:
 			if key_event.pressed and not key_event.echo:
 				_key_dash_just = true
+		KEY_J:
+			if key_event.pressed and not key_event.echo:
+				_key_attack_just = true
+
+
+func _on_animation_finished() -> void:
+	if animated_sprite.animation == "attack":
+		is_attacking = false
 
 
 func reset_abilities() -> void:
@@ -214,6 +234,7 @@ func reset_abilities() -> void:
 	dash_timer = 0.0
 	dash_cooldown_timer = 0.0
 	has_air_dash = true
+	is_attacking = false
 	velocity = Vector2.ZERO
 
 
@@ -241,13 +262,30 @@ func _physics_process(delta: float) -> void:
 	var jump_just_pressed := _key_jump_just
 	var jump_just_released := _key_jump_released
 	var dash_just_pressed := _key_dash_just
+	var attack_just_pressed := _key_attack_just
 	_key_jump_just = false
 	_key_jump_released = false
 	_key_dash_just = false
+	_key_attack_just = false
 
 	# Fall respawn check
 	if global_position.y > fall_respawn_y:
 		hit_hazard.emit()
+		return
+
+	# --- Attack ---
+	if attack_just_pressed and is_on_floor() and not is_attacking and dash_timer <= 0.0:
+		is_attacking = true
+		velocity.x = 0.0
+		animated_sprite.play("attack")
+
+	if is_attacking:
+		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
+		if not is_on_floor():
+			velocity.y += GRAVITY * delta
+			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+		move_and_slide()
+		_was_on_floor = is_on_floor()
 		return
 
 	var on_floor := is_on_floor()
