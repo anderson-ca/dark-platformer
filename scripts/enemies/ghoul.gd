@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-enum State { IDLE, WAKE, CHASE, ATTACK, HIT, DEATH }
+enum State { IDLE, WAKE, CHASE, ATTACK, HIT, DEATH, RECOVER, REPOSITION }
 
 const SPEED := 60.0
 const GRAVITY := 1400.0
@@ -10,11 +10,20 @@ const ATTACK_RANGE := 40.0
 const HIT_STUN_TIME := 0.3
 const FRAME_W := 62
 const FRAME_H := 33
+const MAX_CONSECUTIVE_ATTACKS := 2
+const ATTACK_COOLDOWN := 1.5
+const RECOVER_TIME := 1.0
+const REPOSITION_DISTANCE := 80.0
+const RECOVER_SPEED := 40.0
 
 var state: State = State.IDLE
 var health: int = 3
 var facing: float = -1.0
 var hit_stun_timer: float = 0.0
+var attack_count: int = 0
+var attack_cooldown_timer: float = 0.0
+var recover_timer: float = 0.0
+var reposition_timer: float = 0.0
 var _player: CharacterBody2D = null
 var _has_dealt_damage: bool = false
 
@@ -40,7 +49,8 @@ func _ready() -> void:
 				break
 			world = world.get_parent()
 
-	print("Ghoul ready: health=", health, " player=", _player)
+	print("Ghoul ready: health=", health, " max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
+	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
 
 
 func _setup_animations() -> void:
@@ -78,8 +88,6 @@ func _setup_animations() -> void:
 			atlas_tex.region = Rect2(i * FRAME_W, 0, FRAME_W, FRAME_H)
 			sf.add_frame(anim_name, atlas_tex)
 
-		print("  Ghoul ", anim_name, ": ", frame_count, " frames @ ", fps, " FPS")
-
 	animated_sprite.sprite_frames = sf
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	animated_sprite.play("idle")
@@ -90,6 +98,9 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
 		velocity.y = min(velocity.y, MAX_FALL_SPEED)
+
+	# Tick cooldown
+	attack_cooldown_timer = max(attack_cooldown_timer - delta, 0.0)
 
 	match state:
 		State.IDLE:
@@ -112,6 +123,22 @@ func _physics_process(delta: float) -> void:
 					_enter_state(State.CHASE)
 		State.DEATH:
 			velocity.x = 0.0
+		State.RECOVER:
+			recover_timer -= delta
+			# Move away from player
+			if _player:
+				var away_dir: float = sign(global_position.x - _player.global_position.x)
+				if away_dir == 0.0:
+					away_dir = -facing
+				velocity.x = away_dir * RECOVER_SPEED
+				animated_sprite.flip_h = away_dir > 0  # face player while backing up
+			if recover_timer <= 0.0:
+				_enter_state(State.REPOSITION)
+		State.REPOSITION:
+			reposition_timer -= delta
+			velocity.x = move_toward(velocity.x, 0.0, 200.0 * delta)
+			if reposition_timer <= 0.0:
+				_enter_state(State.CHASE)
 
 	move_and_slide()
 
@@ -133,7 +160,8 @@ func _chase_player(_delta: float) -> void:
 	_face_player()
 	var dist := global_position.distance_to(_player.global_position)
 
-	if dist < ATTACK_RANGE:
+	# Can attack if in range AND cooldown is done
+	if dist < ATTACK_RANGE and attack_cooldown_timer <= 0.0:
 		_enter_state(State.ATTACK)
 		return
 
@@ -174,6 +202,7 @@ func _enter_state(new_state: State) -> void:
 	match new_state:
 		State.IDLE:
 			animated_sprite.play("idle")
+			attack_count = 0
 		State.WAKE:
 			animated_sprite.play("wake")
 		State.CHASE:
@@ -187,11 +216,16 @@ func _enter_state(new_state: State) -> void:
 			animated_sprite.play("hit")
 		State.DEATH:
 			animated_sprite.play("death")
-			# Disable collisions on death
 			set_collision_layer_value(1, false)
 			set_collision_layer_value(2, false)
 			hitbox.set_deferred("monitoring", false)
 			attack_area.set_deferred("monitoring", false)
+		State.RECOVER:
+			recover_timer = RECOVER_TIME
+			animated_sprite.play("walk")
+		State.REPOSITION:
+			reposition_timer = 0.5
+			animated_sprite.play("idle")
 
 
 func _on_animation_finished() -> void:
@@ -199,10 +233,13 @@ func _on_animation_finished() -> void:
 		State.WAKE:
 			_enter_state(State.CHASE)
 		State.ATTACK:
-			# Check if player still in range
-			if _player and global_position.distance_to(_player.global_position) < ATTACK_RANGE * 1.5:
-				_enter_state(State.ATTACK)
+			attack_count += 1
+			attack_cooldown_timer = ATTACK_COOLDOWN
+			if attack_count >= MAX_CONSECUTIVE_ATTACKS:
+				attack_count = 0
+				_enter_state(State.RECOVER)
 			else:
+				# Go back to chase (cooldown prevents immediate re-attack)
 				_enter_state(State.CHASE)
 		State.DEATH:
 			queue_free()
@@ -218,6 +255,8 @@ func take_damage(from_position: Vector2) -> void:
 		kb_dir = -facing
 	velocity.x = kb_dir * 120.0
 	velocity.y = -80.0
+	attack_count = 0
+	attack_cooldown_timer = 0.0
 	_enter_state(State.HIT)
 	print("Ghoul hit! health=", health)
 
@@ -230,7 +269,6 @@ func take_knockback(from_position: Vector2) -> void:
 		kb_dir = -facing
 	velocity.x = kb_dir * 150.0
 	velocity.y = -60.0
-	print("Ghoul knocked back by shield!")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:

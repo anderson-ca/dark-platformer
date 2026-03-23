@@ -58,6 +58,8 @@ var _attack_hitbox: Area2D
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var is_dead: bool = false
+var is_invincible: bool = false
+var _is_taking_hit: bool = false
 var shockwave_cooldown_timer: float = 0.0
 const SHOCKWAVE_COOLDOWN := 2.0
 const MAX_HEALTH := 3
@@ -196,12 +198,11 @@ func _on_attack_hit_enemy(area: Area2D) -> void:
 		enemy.take_damage(global_position)
 
 
-func take_damage(_from_position: Vector2) -> void:
-	if is_dead:
+func take_damage(from_position: Vector2) -> void:
+	if is_dead or is_invincible:
 		return
 	if is_shielding:
 		print("Shield BLOCKED attack!")
-		# Knockback the attacker if it's a ghoul
 		var ghouls := get_tree().get_nodes_in_group("enemies")
 		for enemy in ghouls:
 			if enemy.has_method("take_knockback"):
@@ -214,15 +215,47 @@ func take_damage(_from_position: Vector2) -> void:
 	if current_health <= 0:
 		_play_death()
 	else:
-		# Brief invulnerability flash (hit but not dead)
-		animated_sprite.play("hit")
-		is_attacking = false
-		_attack_hitbox.monitoring = false
-		velocity.x = sign(global_position.x - _from_position.x) * 100.0
-		velocity.y = -60.0
-		await get_tree().create_timer(0.3).timeout
-		if not is_dead:
-			animated_sprite.play("idle")
+		_play_hit(from_position)
+
+
+func _play_hit(from_position: Vector2) -> void:
+	_is_taking_hit = true
+	is_invincible = true
+	is_attacking = false
+	is_shielding = false
+	_shield_phase = ""
+	is_shockwaving = false
+	_attack_hitbox.monitoring = false
+
+	# Knockback away from damage source
+	var kb_dir: float = sign(global_position.x - from_position.x)
+	if kb_dir == 0.0:
+		kb_dir = 1.0
+	velocity.x = kb_dir * 120.0
+	velocity.y = -80.0
+
+	animated_sprite.play("hit")
+	print("Player hit animation: 2 frames @ 8 FPS, invincible for 0.5s")
+
+	# Wait for hit animation
+	await get_tree().create_timer(0.25).timeout
+	_is_taking_hit = false
+	if is_dead:
+		return
+
+	# Blink for remaining invincibility
+	var blink_end := 0.5  # total blink time after hit anim
+	var blink_elapsed := 0.0
+	while blink_elapsed < blink_end:
+		animated_sprite.visible = not animated_sprite.visible
+		await get_tree().create_timer(0.06).timeout
+		blink_elapsed += 0.06
+		if is_dead:
+			animated_sprite.visible = true
+			return
+
+	animated_sprite.visible = true
+	is_invincible = false
 
 
 func _play_death() -> void:
@@ -368,9 +401,12 @@ func reset_abilities() -> void:
 	_shield_phase = ""
 	is_shockwaving = false
 	is_dead = false
+	is_invincible = false
+	_is_taking_hit = false
 	current_health = MAX_HEALTH
 	shockwave_cooldown_timer = 0.0
 	velocity = Vector2.ZERO
+	animated_sprite.visible = true
 
 
 func respawn() -> void:
@@ -393,11 +429,11 @@ func activate_checkpoint(pos: Vector2) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if is_dead:
-		velocity.x = 0.0
+	if is_dead or _is_taking_hit:
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta
 			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		move_and_slide()
 		return
 
