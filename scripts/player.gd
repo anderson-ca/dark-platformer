@@ -53,6 +53,12 @@ var facing: float = 1.0
 var is_wall_sliding: bool = false
 var wall_dir: float = 0.0
 var is_attacking: bool = false
+var is_shielding: bool = false
+var _shield_phase: String = ""  # "up", "hold", "down"
+var is_shockwaving: bool = false
+var shockwave_cooldown_timer: float = 0.0
+const SHOCKWAVE_COOLDOWN := 2.0
+const SHIELD_SPEED_MULT := 0.5
 
 # Raw input tracking
 var _key_left: bool = false
@@ -61,6 +67,8 @@ var _key_jump_just: bool = false
 var _key_jump_released: bool = false
 var _key_dash_just: bool = false
 var _key_attack_just: bool = false
+var _key_shield_held: bool = false
+var _key_shockwave_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -98,6 +106,10 @@ func _setup_sprite_frames() -> void:
 		["death",      P + "The Evil Sage-Death.png",       8, 8,  false],
 		["hit",        P + "The Evil Sage-hit.png",         2, 8,  false],
 		["attack",     P + "The Evil Sage-Orb attack.png", 16, 12, false],
+		["shield_up",   P + "The Evil Sage-Shield up.png",    4, 10, false],
+		["shield_hold", P + "The Evil Sage-shield hold.png",  8, 10, true],
+		["shield_down", P + "The Evil Sage-shield down.png",  4, 10, false],
+		["shockwave",   P + "The Evil Sage-Shockwave.png",   14, 12, false],
 	]
 
 	for anim_def in anims:
@@ -120,7 +132,7 @@ func _setup_sprite_frames() -> void:
 			sf.add_frame(anim_name, atlas_tex)
 
 	animated_sprite.sprite_frames = sf
-	print("Attack animation: 16 frames @ 12 FPS (duration: ", 16.0 / 12.0, "s)")
+	print("Attack: 16 frames @ 12 FPS | Shield up: 4 @ 10 | Shield hold: 8 @ 10 | Shield down: 4 @ 10 | Shockwave: 14 @ 12")
 	animated_sprite.scale = Vector2(1.5, 1.5)
 	# Dark sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
@@ -218,11 +230,15 @@ func _on_dash_dust_finished() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# Mouse click — attack
+	# Mouse buttons — attack / shield / shockwave
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
 			_key_attack_just = true
+		elif mb.button_index == MOUSE_BUTTON_RIGHT:
+			_key_shield_held = mb.pressed
+		elif mb.button_index == MOUSE_BUTTON_MIDDLE and mb.pressed:
+			_key_shockwave_just = true
 		return
 
 	if not (event is InputEventKey):
@@ -246,11 +262,24 @@ func _input(event: InputEvent) -> void:
 		KEY_J:
 			if key_event.pressed and not key_event.echo:
 				_key_attack_just = true
+		KEY_K:
+			_key_shield_held = key_event.pressed
+		KEY_L:
+			if key_event.pressed and not key_event.echo:
+				_key_shockwave_just = true
 
 
 func _on_animation_finished() -> void:
 	if animated_sprite.animation == "attack":
 		is_attacking = false
+	elif animated_sprite.animation == "shield_up":
+		_shield_phase = "hold"
+		animated_sprite.play("shield_hold")
+	elif animated_sprite.animation == "shield_down":
+		is_shielding = false
+		_shield_phase = ""
+	elif animated_sprite.animation == "shockwave":
+		is_shockwaving = false
 
 
 func reset_abilities() -> void:
@@ -262,6 +291,10 @@ func reset_abilities() -> void:
 	dash_cooldown_timer = 0.0
 	has_air_dash = true
 	is_attacking = false
+	is_shielding = false
+	_shield_phase = ""
+	is_shockwaving = false
+	shockwave_cooldown_timer = 0.0
 	velocity = Vector2.ZERO
 
 
@@ -290,14 +323,67 @@ func _physics_process(delta: float) -> void:
 	var jump_just_released := _key_jump_released
 	var dash_just_pressed := _key_dash_just
 	var attack_just_pressed := _key_attack_just
+	var shield_held := _key_shield_held
+	var shockwave_just_pressed := _key_shockwave_just
 	_key_jump_just = false
 	_key_jump_released = false
 	_key_dash_just = false
 	_key_attack_just = false
+	_key_shockwave_just = false
+
+	# Timers
+	shockwave_cooldown_timer = max(shockwave_cooldown_timer - delta, 0.0)
 
 	# Fall respawn check
 	if global_position.y > fall_respawn_y:
 		hit_hazard.emit()
+		return
+
+	# --- Shockwave (highest priority except death) ---
+	if shockwave_just_pressed and is_on_floor() and not is_shockwaving and shockwave_cooldown_timer <= 0.0:
+		is_shockwaving = true
+		is_attacking = false
+		is_shielding = false
+		_shield_phase = ""
+		shockwave_cooldown_timer = SHOCKWAVE_COOLDOWN
+		velocity.x = 0.0
+		animated_sprite.play("shockwave")
+
+	if is_shockwaving:
+		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
+		if not is_on_floor():
+			velocity.y += GRAVITY * delta
+			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+		move_and_slide()
+		_was_on_floor = is_on_floor()
+		return
+
+	# --- Shield ---
+	if shield_held and is_on_floor() and not is_attacking and dash_timer <= 0.0:
+		if not is_shielding:
+			is_shielding = true
+			_shield_phase = "up"
+			animated_sprite.play("shield_up")
+	elif is_shielding and not shield_held:
+		# Release shield
+		_shield_phase = "down"
+		animated_sprite.play("shield_down")
+
+	if is_shielding:
+		# Allow slow movement while shielding
+		var input_dir_shield := 0.0
+		if _key_right: input_dir_shield += 1.0
+		if _key_left: input_dir_shield -= 1.0
+		if input_dir_shield != 0.0:
+			facing = input_dir_shield
+		velocity.x = input_dir_shield * SPEED * SHIELD_SPEED_MULT
+		if not is_on_floor():
+			velocity.y += GRAVITY * delta
+			velocity.y = min(velocity.y, MAX_FALL_SPEED)
+		move_and_slide()
+		_was_on_floor = is_on_floor()
+		animated_sprite.flip_h = facing < 0.0
+		animated_sprite.position.x = 0.0
 		return
 
 	# --- Attack ---
