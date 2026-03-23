@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://clm74i67b5ang"
-path="res://.godot/imported/06 - clouds.png-9900ab93e5792b5740f67f354b6bdb63.ctex"
+uid="uid://crs0wx7tj3k86"
+path="res://.godot/imported/dense atmostphere1.png-b2a603ffaa06404fb6c8a24e1444e90f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/mountain_pass/simple/06 - clouds.png"
-dest_files=["res://.godot/imported/06 - clouds.png-9900ab93e5792b5740f67f354b6bdb63.ctex"]
+source_file="res://assets/backgrounds/mountain_pass/dense atmostphere1.png"
+dest_files=["res://.godot/imported/dense atmostphere1.png-b2a603ffaa06404fb6c8a24e1444e90f.ctex"]
 
 [params]
 
