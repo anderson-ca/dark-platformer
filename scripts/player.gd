@@ -95,21 +95,21 @@ func _setup_sprite_frames() -> void:
 		sf.remove_animation("default")
 
 	# [anim_name, file_path, frame_count, fps, loop]
-	var P := "res://assets/sprites/player/dark_sage/"
+	var P := "res://assets/sprites/player/sage/"
 	var anims := [
-		["idle",       P + "The Evil Sage-Idle Front.png",  9, 8,  true],
-		["run",        P + "The Evil Sage-Run.png",         8, 10, true],
-		["jump",       P + "The Evil Sage-Jump.png",        4, 10, false],
-		["fall",       P + "The Evil Sage-Fall.png",        4, 8,  true],
-		["dash",       P + "The Evil Sage-Dash.png",        4, 14, false],
-		["wall_slide", P + "The Evil Sage-Wall Slide.png",  4, 8,  true],
-		["death",      P + "The Evil Sage-Death.png",       8, 8,  false],
-		["hit",        P + "The Evil Sage-hit.png",         2, 8,  false],
-		["attack",     P + "The Evil Sage-Orb attack.png", 16, 12, false],
-		["shield_up",   P + "The Evil Sage-Shield up.png",    4, 10, false],
-		["shield_hold", P + "The Evil Sage-shield hold.png",  8, 10, true],
-		["shield_down", P + "The Evil Sage-shield down.png",  4, 10, false],
-		["shockwave",   P + "The Evil Sage-Shockwave.png",   14, 12, false],
+		["idle",        P + "The Sage-Idle Front.png",  9, 8,  true],
+		["run",         P + "The Sage-Run.png",         8, 10, true],
+		["jump",        P + "The Sage-Jump.png",        4, 10, false],
+		["fall",        P + "The Sage-Fall.png",        4, 8,  true],
+		["dash",        P + "The Sage-Dash.png",        4, 14, false],
+		["wall_slide",  P + "The Sage-Wall Slide.png",  4, 8,  true],
+		["death",       P + "The Sage-Death.png",       8, 8,  false],
+		["hit",         P + "The Sage-hit.png",         2, 8,  false],
+		["attack",      P + "The Sage-Orb attack.png", 16, 12, false],
+		["shield_up",   P + "The Sage-Shield up.png",    4, 10, false],
+		["shield_hold", P + "The Sage-shield hold.png",  8, 10, true],
+		["shield_down", P + "The Sage-shield down.png",  4, 10, false],
+		["shockwave",   P + "The Sage-Shockwave.png",   14, 12, false],
 	]
 
 	for anim_def in anims:
@@ -132,9 +132,10 @@ func _setup_sprite_frames() -> void:
 			sf.add_frame(anim_name, atlas_tex)
 
 	animated_sprite.sprite_frames = sf
-	print("Attack: 16 frames @ 12 FPS | Shield up: 4 @ 10 | Shield hold: 8 @ 10 | Shield down: 4 @ 10 | Shockwave: 14 @ 12")
+	for anim_def in anims:
+		print("  ", anim_def[0], ": ", anim_def[2], " frames @ ", anim_def[3], " FPS -> ", anim_def[1])
 	animated_sprite.scale = Vector2(1.5, 1.5)
-	# Dark sage: character at y=107-121 in 192x192 frame, feet at y=121
+	# Sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
 	# offset.y = 9/1.5 - (121-96) = 6 - 25 = -19
 	animated_sprite.offset = Vector2(0, -19)
