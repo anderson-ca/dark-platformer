@@ -6,6 +6,9 @@ const SOLID_COLOR := Color(0, 0, 0, 0)
 const HAZARD_COLOR := Color(0.8, 0.2, 0.2)
 const GOAL_COLOR := Color(0.333, 0.8, 0.333)
 
+const TILE_SIZE := 64
+var _tileset_tex: Texture2D
+
 var current_room_index: int = 0
 
 @onready var player: CharacterBody2D = $Player
@@ -24,6 +27,8 @@ func _ready() -> void:
 	var drop_img := Image.create(1, 8, false, Image.FORMAT_RGBA8)
 	drop_img.fill(Color.WHITE)
 	rain.texture = ImageTexture.create_from_image(drop_img)
+
+	_tileset_tex = load("res://assets/tilesets/mountain_pass/tileset 64x64.png") as Texture2D
 
 	player.hit_hazard.connect(_on_hazard)
 
@@ -46,6 +51,9 @@ func load_room(index: int) -> void:
 	# Build solids
 	for s in room.solids:
 		_create_solid(s.x, s.y, s.w, s.h)
+		# Add visual ground tiles for wide ground solids
+		if s.w > 200:
+			_create_ground_tiles(s.x, s.y, s.w)
 
 	# Build moving platforms
 	for mp in room.moving_platforms:
@@ -102,6 +110,53 @@ func _setup_room1_props() -> void:
 	col.shape = shape
 	wall.add_child(col)
 	room_geometry.add_child(wall)
+
+
+func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
+	# Tileset atlas coords (col, row) in 12x12 grid of 64x64 tiles
+	# Surface edge: row 0 — thin rocky top edge (content at y=59-63 in tile)
+	# Fill: rows 7-10 — solid dark rock
+	var surface_tiles := [Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
+	var fill_tiles := [
+		Vector2i(0, 7), Vector2i(1, 7), Vector2i(2, 7), Vector2i(3, 7),
+		Vector2i(4, 7), Vector2i(5, 7), Vector2i(0, 8), Vector2i(1, 8),
+		Vector2i(2, 8), Vector2i(3, 8), Vector2i(4, 8), Vector2i(5, 8),
+	]
+
+	var cols := int(ceil(gw / TILE_SIZE))
+	var container := Node2D.new()
+	container.name = "GroundTiles"
+	container.z_index = -1
+	room_geometry.add_child(container)
+
+	# Surface edge row: one tile above ground level
+	for c in range(cols):
+		var atlas_coord: Vector2i = surface_tiles[c % surface_tiles.size()]
+		var sprite := _make_tile_sprite(atlas_coord)
+		sprite.position = Vector2(gx + c * TILE_SIZE, gy - TILE_SIZE)
+		container.add_child(sprite)
+
+	# Fill rows: at ground level and below (2 rows = 128px)
+	for row_idx in range(2):
+		for c in range(cols):
+			var atlas_coord: Vector2i = fill_tiles[(c + row_idx * 7) % fill_tiles.size()]
+			var sprite := _make_tile_sprite(atlas_coord)
+			sprite.position = Vector2(gx + c * TILE_SIZE, gy + row_idx * TILE_SIZE)
+			container.add_child(sprite)
+
+	print("Ground tiles: surface=", surface_tiles, " fill=", fill_tiles.slice(0, 4), "...")
+	print("  ", cols, " columns, 3 rows (surface + 2 fill), from y=", gy - TILE_SIZE, " to y=", gy + 2 * TILE_SIZE)
+
+
+func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:
+	var atlas := AtlasTexture.new()
+	atlas.atlas = _tileset_tex
+	atlas.region = Rect2(atlas_coord.x * TILE_SIZE, atlas_coord.y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	var sprite := Sprite2D.new()
+	sprite.texture = atlas
+	sprite.centered = false
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	return sprite
 
 
 func _create_solid(x: float, y: float, w: float, h: float) -> void:
