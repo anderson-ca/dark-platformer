@@ -106,10 +106,11 @@ func _setup_room1_props() -> void:
 	# Ground ColorRect removed — parallax floor layer (10-(floor).png) serves as visual ground.
 	# Collision StaticBody2D at y=640 is created by _create_solid() from room data.
 
-	# Zone 1 boundary wall — invisible, blocks player at x=900
+	# Zone 1 boundary wall — invisible, blocks player at x=2400
 	var wall := StaticBody2D.new()
 	wall.name = "zone_1_boundary"
-	wall.position = Vector2(900, 360)  # centered vertically in 720px room
+	wall.position = Vector2(2400, 360)  # centered vertically in 720px room
+	print("Zone 1 boundary: 900 -> 2400")
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(10, 720)
 	var col := CollisionShape2D.new()
@@ -127,10 +128,10 @@ func _create_campfire(pos: Vector2) -> void:
 	campfire.position = pos
 	mg_container.add_child(campfire)
 
-	# Fire — animated spritesheet: 468x38, 12 frames of 39x38
-	var fire_path := "res://assets/props/room_1/zone_1/midground/animated/Purple Wild 39x38.png"
+	# Fire — animated spritesheet: 432x38, 12 frames of 36x38
+	var fire_path := "res://assets/props/room_1/zone_1/midground/animated/Custom Fires-Wild.png"
 	var fire_tex := load(fire_path) as Texture2D
-	var FRAME_W := 39
+	var FRAME_W := 36
 	var FRAME_H := 38
 	var frame_count := int(fire_tex.get_width()) / FRAME_W
 
@@ -166,8 +167,8 @@ func _create_campfire(pos: Vector2) -> void:
 	pig.position = Vector2(0, -FRAME_H * sc * 0.55)  # sitting just above fire
 	campfire.add_child(pig)
 
-	print("Campfire: ", frame_count, " frames, scale=", sc, " pos=", pos)
-	print("  fire pos=", fire.position, " pig pos=", pig.position)
+	print("Campfire: Custom Fires-Wild.png ", fire_tex.get_width(), "x", fire_tex.get_height(), ", ", frame_count, " frames of ", FRAME_W, "x", FRAME_H)
+	print("  scale=", sc, " pos=", pos, " fire=", fire.position, " pig=", pig.position)
 
 
 func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
