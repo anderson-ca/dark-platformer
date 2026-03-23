@@ -60,7 +60,8 @@ var is_shockwaving: bool = false
 var is_dead: bool = false
 var shockwave_cooldown_timer: float = 0.0
 const SHOCKWAVE_COOLDOWN := 2.0
-const SHIELD_SPEED_MULT := 0.5
+const MAX_HEALTH := 3
+var current_health: int = MAX_HEALTH
 
 # Raw input tracking
 var _key_left: bool = false
@@ -196,9 +197,32 @@ func _on_attack_hit_enemy(area: Area2D) -> void:
 
 
 func take_damage(_from_position: Vector2) -> void:
-	if is_shielding or is_dead:
+	if is_dead:
 		return
-	_play_death()
+	if is_shielding:
+		print("Shield BLOCKED attack!")
+		# Knockback the attacker if it's a ghoul
+		var ghouls := get_tree().get_nodes_in_group("enemies")
+		for enemy in ghouls:
+			if enemy.has_method("take_knockback"):
+				var dist := global_position.distance_to(enemy.global_position)
+				if dist < 60.0:
+					enemy.take_knockback(global_position)
+		return
+	current_health -= 1
+	print("Player hit! health=", current_health, "/", MAX_HEALTH)
+	if current_health <= 0:
+		_play_death()
+	else:
+		# Brief invulnerability flash (hit but not dead)
+		animated_sprite.play("hit")
+		is_attacking = false
+		_attack_hitbox.monitoring = false
+		velocity.x = sign(global_position.x - _from_position.x) * 100.0
+		velocity.y = -60.0
+		await get_tree().create_timer(0.3).timeout
+		if not is_dead:
+			animated_sprite.play("idle")
 
 
 func _play_death() -> void:
@@ -344,6 +368,7 @@ func reset_abilities() -> void:
 	_shield_phase = ""
 	is_shockwaving = false
 	is_dead = false
+	current_health = MAX_HEALTH
 	shockwave_cooldown_timer = 0.0
 	velocity = Vector2.ZERO
 
@@ -428,13 +453,8 @@ func _physics_process(delta: float) -> void:
 		animated_sprite.play("shield_down")
 
 	if is_shielding:
-		# Allow slow movement while shielding
-		var input_dir_shield := 0.0
-		if _key_right: input_dir_shield += 1.0
-		if _key_left: input_dir_shield -= 1.0
-		if input_dir_shield != 0.0:
-			facing = input_dir_shield
-		velocity.x = input_dir_shield * SPEED * SHIELD_SPEED_MULT
+		# No movement while shielding — stationary
+		velocity.x = 0.0
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta
 			velocity.y = min(velocity.y, MAX_FALL_SPEED)

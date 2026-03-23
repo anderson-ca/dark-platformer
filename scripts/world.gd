@@ -46,7 +46,12 @@ func _ready() -> void:
 	print("CanvasModulate AFTER: ", canvas_mod.color)
 	add_child(canvas_mod)
 
+	hud_node.set_player(player)
+
 	load_room(0)
+
+	print("Player health: ", player.current_health, "/", player.MAX_HEALTH)
+	print("Shield blocks attacks: YES")
 
 
 func load_room(index: int) -> void:

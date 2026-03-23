@@ -3,9 +3,11 @@ extends CanvasLayer
 var room_label: Label
 var hint_label: Label
 var respawn_label: Label
+var health_label: Label
 var flash_rect: ColorRect
 var _flash_timer: float = 0.0
 var _respawn_msg_timer: float = 0.0
+var _player: CharacterBody2D = null
 
 
 func _ready() -> void:
@@ -30,6 +32,13 @@ func _ready() -> void:
 	respawn_label.visible = false
 	add_child(respawn_label)
 
+	health_label = Label.new()
+	health_label.position = Vector2(12, 50)
+	health_label.add_theme_font_size_override("font_size", 14)
+	health_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	health_label.text = "HP: 3 / 3"
+	add_child(health_label)
+
 	flash_rect = ColorRect.new()
 	flash_rect.position = Vector2.ZERO
 	flash_rect.size = Vector2(800, 450)
@@ -49,6 +58,14 @@ func set_hints(hints: Array) -> void:
 			text += "\n"
 		text += str(h)
 	hint_label.text = text
+
+
+func set_player(p: CharacterBody2D) -> void:
+	_player = p
+
+
+func update_health(current: int, max_hp: int) -> void:
+	health_label.text = "HP: %d / %d" % [current, max_hp]
 
 
 func flash_respawn() -> void:
@@ -71,3 +88,6 @@ func _process(delta: float) -> void:
 		_respawn_msg_timer -= delta
 		if _respawn_msg_timer <= 0.0:
 			respawn_label.visible = false
+
+	if _player and _player.has_method("get") and "current_health" in _player:
+		health_label.text = "HP: %d / %d" % [_player.current_health, _player.MAX_HEALTH]

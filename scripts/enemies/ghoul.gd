@@ -24,6 +24,7 @@ var _has_dealt_damage: bool = false
 
 
 func _ready() -> void:
+	add_to_group("enemies")
 	_setup_animations()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 	attack_area.body_entered.connect(_on_attack_area_body_entered)
@@ -219,6 +220,17 @@ func take_damage(from_position: Vector2) -> void:
 	velocity.y = -80.0
 	_enter_state(State.HIT)
 	print("Ghoul hit! health=", health)
+
+
+func take_knockback(from_position: Vector2) -> void:
+	if state == State.DEATH:
+		return
+	var kb_dir: float = sign(global_position.x - from_position.x)
+	if kb_dir == 0.0:
+		kb_dir = -facing
+	velocity.x = kb_dir * 150.0
+	velocity.y = -60.0
+	print("Ghoul knocked back by shield!")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:
