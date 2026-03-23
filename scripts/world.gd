@@ -129,6 +129,15 @@ func _setup_room1_props() -> void:
 	# Campfire with roasting pig
 	_create_campfire(Vector2(350, 640))
 
+	# Ghouls
+	var ghoul_scene := load("res://scenes/enemies/Ghoul.tscn") as PackedScene
+	var ghoul_positions := [Vector2(800, 631), Vector2(1400, 631), Vector2(2000, 631)]
+	for pos in ghoul_positions:
+		var ghoul := ghoul_scene.instantiate()
+		ghoul.global_position = pos
+		room_geometry.add_child(ghoul)
+	print("Spawned ", ghoul_positions.size(), " ghouls")
+
 
 func _create_campfire(pos: Vector2) -> void:
 	var campfire := Node2D.new()

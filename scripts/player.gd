@@ -54,6 +54,7 @@ var is_wall_sliding: bool = false
 var wall_dir: float = 0.0
 var is_attacking: bool = false
 var is_shielding: bool = false
+var _attack_hitbox: Area2D
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var shockwave_cooldown_timer: float = 0.0
@@ -82,9 +83,11 @@ var _was_dashing: bool = false
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_setup_sprite_frames()
 	_setup_dust_sprites()
 	_setup_player_light()
+	_setup_attack_hitbox()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
@@ -166,6 +169,35 @@ func _setup_player_light() -> void:
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
 	print("PlayerLight: energy=1.3, scale=2.5, color=", light.color)
+
+
+func _setup_attack_hitbox() -> void:
+	_attack_hitbox = Area2D.new()
+	_attack_hitbox.name = "AttackHitbox"
+	_attack_hitbox.collision_layer = 0
+	_attack_hitbox.collision_mask = 4  # detect enemy hitbox layer
+	_attack_hitbox.monitoring = false
+
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(40, 20)
+	var col := CollisionShape2D.new()
+	col.shape = shape
+	col.position = Vector2(20, -5)  # in front of player
+	_attack_hitbox.add_child(col)
+	add_child(_attack_hitbox)
+	_attack_hitbox.area_entered.connect(_on_attack_hit_enemy)
+
+
+func _on_attack_hit_enemy(area: Area2D) -> void:
+	var enemy := area.get_parent()
+	if enemy.has_method("take_damage"):
+		enemy.take_damage(global_position)
+
+
+func take_damage(_from_position: Vector2) -> void:
+	if is_shielding:
+		return  # shield blocks damage
+	hit_hazard.emit()
 
 
 func _setup_dust_sprites() -> void:
@@ -273,6 +305,7 @@ func _input(event: InputEvent) -> void:
 func _on_animation_finished() -> void:
 	if animated_sprite.animation == "attack":
 		is_attacking = false
+		_attack_hitbox.monitoring = false
 	elif animated_sprite.animation == "shield_up":
 		_shield_phase = "hold"
 		animated_sprite.play("shield_hold")
@@ -392,6 +425,9 @@ func _physics_process(delta: float) -> void:
 		is_attacking = true
 		velocity.x = 0.0
 		animated_sprite.play("attack")
+		# Enable attack hitbox, flip based on facing
+		_attack_hitbox.scale.x = facing
+		_attack_hitbox.monitoring = true
 
 	if is_attacking:
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
