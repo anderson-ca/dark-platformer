@@ -126,8 +126,8 @@ func _setup_sprite_frames() -> void:
 		["wall_slide",  P + "The Sage-Wall Slide.png",  4, 8,  true],
 		["death",       P + "The Sage-Death.png",       8, 8,  false],
 		["hit",         P + "The Sage-hit.png",         2, 8,  false],
-		["attack1",     P + "The Sage-Orb attack.png", 8, 12, false, 0],
-		["attack2",     P + "The Sage-Orb attack.png", 8, 12, false, 8],
+		["attack1",     P + "The Sage-Orb attack.png",  8, 12, false, 0],
+		["attack",      P + "The Sage-Orb attack.png", 16, 12, false, 0],
 		["shield_up",   P + "The Sage-Shield up.png",    4, 10, false],
 		["shield_hold", P + "The Sage-shield hold.png",  8, 10, true],
 		["shield_down", P + "The Sage-shield down.png",  4, 10, false],
@@ -157,7 +157,7 @@ func _setup_sprite_frames() -> void:
 	animated_sprite.sprite_frames = sf
 	for anim_def in anims:
 		print("  ", anim_def[0], ": ", anim_def[2], " frames @ ", anim_def[3], " FPS -> ", anim_def[1])
-	print("Combo: attack1 (frames 0-7) -> ", COMBO_WINDOW_TIME, "s window -> attack2 (frames 8-15)")
+	print("Combo: attack1 (8 frames, single orb) | full attack (16 frames, both orbs) | window=", COMBO_WINDOW_TIME, "s")
 	animated_sprite.scale = Vector2(1.5, 1.5)
 	# Sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
@@ -428,12 +428,12 @@ func _input(event: InputEvent) -> void:
 func _on_animation_finished() -> void:
 	if animated_sprite.animation == "attack1":
 		_attack_hitbox.monitoring = false
-		if _combo_stage == 1:
-			# Open combo window — player can press attack for attack2
-			_combo_window = true
-			_combo_timer = COMBO_WINDOW_TIME
-			is_attacking = false  # brief movement window
-	elif animated_sprite.animation == "attack2":
+		# Single tap finished — open combo window for double tap
+		_combo_window = true
+		_combo_timer = COMBO_WINDOW_TIME
+		is_attacking = false  # brief movement window between taps
+	elif animated_sprite.animation == "attack":
+		# Full combo attack finished
 		is_attacking = false
 		_combo_stage = 0
 		_combo_window = false
@@ -577,22 +577,22 @@ func _physics_process(delta: float) -> void:
 
 	# --- Attack / Combo ---
 	if attack_just_pressed and is_on_floor() and dash_timer <= 0.0:
-		if not is_attacking and _combo_stage == 0:
-			# Start combo: attack1
+		if _combo_window and _combo_stage == 1:
+			# Double tap: play full attack (both orbs)
+			is_attacking = true
+			_combo_stage = 2
+			_combo_window = false
+			velocity.x = 0.0
+			animated_sprite.play("attack")
+			_attack_hitbox.scale.x = facing
+			_attack_hitbox.monitoring = true
+		elif not is_attacking and _combo_stage == 0:
+			# Single tap: quick attack (first orb only)
 			is_attacking = true
 			_combo_stage = 1
 			_combo_window = false
 			velocity.x = 0.0
 			animated_sprite.play("attack1")
-			_attack_hitbox.scale.x = facing
-			_attack_hitbox.monitoring = true
-		elif _combo_window and _combo_stage == 1:
-			# Combo hit: attack2
-			is_attacking = true
-			_combo_stage = 2
-			_combo_window = false
-			velocity.x = 0.0
-			animated_sprite.play("attack2")
 			_attack_hitbox.scale.x = facing
 			_attack_hitbox.monitoring = true
 
