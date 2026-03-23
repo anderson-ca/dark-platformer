@@ -59,9 +59,8 @@ var _combo_timer: float = 0.0
 const COMBO_WINDOW_TIME := 0.4
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
-var _shield_zone: Area2D
-const SHIELD_REPEL_FORCE := 15.0
-const SHIELD_ZONE_WIDTH := 45.0
+var _shield_zone: Area2D  # kept but unused — distance check instead
+const SHIELD_ZONE_WIDTH := 50.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var is_dead: bool = false
@@ -223,24 +222,22 @@ func _setup_shield_zone() -> void:
 	col.position = Vector2(SHIELD_ZONE_WIDTH / 2.0, -8)  # in front of player
 	_shield_zone.add_child(col)
 	add_child(_shield_zone)
-	print("ShieldZone: ", SHIELD_ZONE_WIDTH, "px wide, repel force=", SHIELD_REPEL_FORCE)
+	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, NO push force (hard clamp)")
 
 
 func _repel_enemies_from_shield() -> void:
-	if not _shield_zone.monitoring:
-		return
-	var shield_edge_x: float = global_position.x + facing * SHIELD_ZONE_WIDTH
-	for body in _shield_zone.get_overlapping_bodies():
-		if not body.is_in_group("enemies"):
-			continue
-		# Check if enemy is inside the shield zone (between player and edge)
-		var enemy_x: float = body.global_position.x
-		if facing > 0 and enemy_x < shield_edge_x:
-			body.global_position.x = shield_edge_x
-			body.velocity.x = 0.0
-		elif facing < 0 and enemy_x > shield_edge_x:
-			body.global_position.x = shield_edge_x
-			body.velocity.x = 0.0
+	# Hard wall: clamp every enemy to stay outside shield radius
+	var shield_radius := SHIELD_ZONE_WIDTH
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		var dx: float = enemy.global_position.x - global_position.x
+		var abs_dx: float = absf(dx)
+		if abs_dx < shield_radius:
+			# Enemy is inside shield — push to boundary, zero velocity toward player
+			var push_dir: float = sign(dx) if dx != 0.0 else facing
+			enemy.global_position.x = global_position.x + push_dir * shield_radius
+			# Only zero velocity if moving toward player
+			if sign(enemy.velocity.x) != sign(push_dir):
+				enemy.velocity.x = 0.0
 
 
 func _on_attack_hit_enemy(area: Area2D) -> void:
