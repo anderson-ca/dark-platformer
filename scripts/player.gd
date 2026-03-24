@@ -363,48 +363,27 @@ func _spawn_shield_block_effect() -> void:
 	print("Shield block effect: ", SB_FRAMES, " frames of ", SB_FRAME_W, "x", SB_FRAME_H, " @ 14 FPS, scale=0.3")
 
 
-func _spawn_double_jump_wings() -> void:
-	var wings := Node2D.new()
-	get_parent().add_child(wings)
-	wings.global_position = global_position + Vector2(0, -10)
-	wings.z_index = -1
+func _spawn_double_jump_ring() -> void:
+	var ring := Node2D.new()
+	get_parent().add_child(ring)
+	ring.global_position = global_position + Vector2(0, 10)
 
-	var wing_shape := PackedVector2Array([
-		Vector2(0, 0),
-		Vector2(-8, -12),
-		Vector2(-20, -8),
-		Vector2(-25, 0),
-		Vector2(-18, 8),
-		Vector2(-5, 10),
-		Vector2(0, 5)
-	])
+	var num_segments := 16
+	var radius := 8.0
+	for i in num_segments:
+		var line := Line2D.new()
+		var angle_start := (i / float(num_segments)) * TAU
+		var angle_end := ((i + 1) / float(num_segments)) * TAU
+		line.add_point(Vector2(cos(angle_start), sin(angle_start)) * radius)
+		line.add_point(Vector2(cos(angle_end), sin(angle_end)) * radius)
+		line.width = 2.0
+		line.default_color = Color(0.7, 0.6, 1.0, 1.0)
+		ring.add_child(line)
 
-	var right_shape := PackedVector2Array()
-	for point in wing_shape:
-		right_shape.append(Vector2(-point.x, point.y))
-
-	var wing_color := Color(0.6, 0.4, 1.0, 0.8)
-
-	var left_wing := Polygon2D.new()
-	left_wing.polygon = wing_shape
-	left_wing.color = wing_color
-	wings.add_child(left_wing)
-
-	var right_wing := Polygon2D.new()
-	right_wing.polygon = right_shape
-	right_wing.color = wing_color
-	wings.add_child(right_wing)
-
-	# Scale up slightly then fade out
-	wings.scale = Vector2(0.8, 0.8)
 	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(wings, "scale", Vector2(1.5, 1.5), 0.3)
-	tween.tween_property(left_wing, "color:a", 0.0, 0.3)
-	tween.tween_property(right_wing, "color:a", 0.0, 0.3)
-	tween.set_parallel(false)
-	tween.tween_callback(wings.queue_free)
-	print("Double jump wings spawned")
+	tween.tween_property(ring, "scale", Vector2(4.0, 2.0), 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.parallel().tween_property(ring, "modulate:a", 0.0, 0.2)
+	tween.tween_callback(ring.queue_free)
 
 
 func _spawn_dash_ghost() -> void:
@@ -931,7 +910,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_VELOCITY * DOUBLE_JUMP_FACTOR
 			has_double_jump = false
 			jump_buffer_timer = 0.0
-			_spawn_double_jump_wings()
+			_spawn_double_jump_ring()
 
 	# --- Jump buffer on landing ---
 	if on_floor and jump_buffer_timer > 0.0:
