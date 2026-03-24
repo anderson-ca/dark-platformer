@@ -425,13 +425,18 @@ func _spawn_orb_attack_effect() -> void:
 	var effect := AnimatedSprite2D.new()
 	effect.sprite_frames = sf
 	effect.z_index = 5
-	effect.scale = Vector2(0.4, 0.4)
+	effect.scale = Vector2(0.25, 0.25)
 	effect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	effect.global_position = global_position + Vector2(facing * 30, -5)
 	effect.flip_h = animated_sprite.flip_h
 	effect.animation_finished.connect(effect.queue_free)
 	get_parent().add_child(effect)
 	effect.play("burst")
+
+	# Travel forward like a hadouken
+	var travel_distance := 80.0
+	var tween := create_tween()
+	tween.tween_property(effect, "global_position:x", effect.global_position.x + facing * travel_distance, 0.4)
 
 
 func _spawn_blood_effect() -> void:
