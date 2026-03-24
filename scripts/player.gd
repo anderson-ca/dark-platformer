@@ -299,7 +299,38 @@ func take_damage(from_position: Vector2) -> void:
 		_play_hit(from_position)
 
 
+func _spawn_blood_effect() -> void:
+	var BLOOD_FRAME_W := 82
+	var BLOOD_FRAME_H := 65
+	var BLOOD_FRAMES := 9
+	var blood_tex := load("res://assets/effects/combat/hit/Blood hit 3.png") as Texture2D
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("blood")
+	sf.set_animation_speed("blood", 14.0)
+	sf.set_animation_loop("blood", false)
+	for i in range(BLOOD_FRAMES):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = blood_tex
+		atlas.region = Rect2(i * BLOOD_FRAME_W, 0, BLOOD_FRAME_W, BLOOD_FRAME_H)
+		sf.add_frame("blood", atlas)
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = sf
+	sprite.z_index = 10
+	sprite.scale = Vector2(1.5, 1.5)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.global_position = global_position + Vector2(0, -10)
+	sprite.animation_finished.connect(sprite.queue_free)
+	get_parent().add_child(sprite)
+	sprite.play("blood")
+	print("Blood effect: ", BLOOD_FRAMES, " frames of ", BLOOD_FRAME_W, "x", BLOOD_FRAME_H, " @ 14 FPS")
+
+
 func _play_hit(from_position: Vector2) -> void:
+	_spawn_blood_effect()
 	_is_taking_hit = true
 	is_invincible = true
 	is_attacking = false
@@ -360,7 +391,7 @@ func _play_death() -> void:
 
 
 func _setup_dust_sprites() -> void:
-	var E := "res://assets/effects/"
+	var E := "res://assets/effects/movement/"
 	var feet_y := 9.0  # collision bottom: center(-1) + half-height(10)
 	var DUST_FRAME := 128
 
