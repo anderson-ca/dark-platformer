@@ -44,8 +44,8 @@ func _ready() -> void:
 
 	# Darken parallax background separately for moodier atmosphere
 	var parallax_bg := $ParallaxBackground
-	parallax_bg.modulate = Color(0.5, 0.5, 0.55, 1.0)
-	print("ParallaxBackground modulate: ", parallax_bg.modulate)
+	parallax_bg.self_modulate = Color(0.5, 0.5, 0.55, 1.0)
+	print("ParallaxBackground self_modulate: ", parallax_bg.self_modulate)
 
 	# Dark atmosphere — darken everything, player/campfire lights punch through
 	var canvas_mod := CanvasModulate.new()
