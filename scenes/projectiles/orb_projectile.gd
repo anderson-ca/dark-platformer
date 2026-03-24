@@ -12,6 +12,7 @@ var hit_enemies: Array = []
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var glow_light: PointLight2D = $GlowLight
 
 
 func _ready() -> void:
@@ -34,11 +35,42 @@ func _ready() -> void:
 	animated_sprite.sprite_frames = sf
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	animated_sprite.modulate = Color(0.8, 0.5, 1.0, 1.0)
 	animated_sprite.play("burst")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
+	# Purple outline shader
+	var shader := load("res://shaders/purple_outline.gdshader")
+	var shader_mat := ShaderMaterial.new()
+	shader_mat.shader = shader
+	shader_mat.set_shader_parameter("outline_color", Color(0.6, 0.2, 1.0, 1.0))
+	shader_mat.set_shader_parameter("outline_width", 1.5)
+	animated_sprite.material = shader_mat
+
+	# Generate light texture
+	glow_light.texture = _make_light_texture()
+
+	# Pulse the glow
+	var tween := create_tween().set_loops()
+	tween.tween_property(glow_light, "energy", 2.0, 0.15)
+	tween.tween_property(glow_light, "energy", 1.2, 0.15)
+
 	area_entered.connect(_on_area_entered)
-	print("OrbProjectile spawned, direction: ", direction)
+	print("Orb glow and outline initialized, direction: ", direction)
+
+
+func _make_light_texture() -> ImageTexture:
+	var size := 64
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var radius := size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist := Vector2(x, y).distance_to(center)
+			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
+			alpha = alpha * alpha
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	return ImageTexture.create_from_image(img)
 
 
 func _physics_process(delta: float) -> void:

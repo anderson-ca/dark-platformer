@@ -18,3 +18,10 @@ z_index = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_orb")
+
+[node name="GlowLight" type="PointLight2D" parent="."]
+color = Color(0.6, 0.2, 1, 1)
+energy = 1.5
+texture_scale = 0.8
+shadow_enabled = false
+blend_mode = 1
