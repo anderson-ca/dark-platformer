@@ -42,7 +42,7 @@ func _ready() -> void:
 	var canvas_mod := CanvasModulate.new()
 	canvas_mod.name = "DarkAtmosphere"
 	print("CanvasModulate BEFORE: Color(0.15, 0.15, 0.2, 1.0)")
-	canvas_mod.color = Color(0.08, 0.08, 0.12, 1.0)
+	canvas_mod.color = Color(0.05, 0.05, 0.08, 1.0)
 	print("CanvasModulate AFTER: ", canvas_mod.color)
 	add_child(canvas_mod)
 

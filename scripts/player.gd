@@ -185,15 +185,15 @@ func _setup_player_light() -> void:
 
 	var light := PointLight2D.new()
 	light.name = "PlayerLight"
-	light.color = Color(1.0, 0.95, 0.8)
-	light.energy = 1.3
+	light.color = Color(1.0, 0.9, 0.7)
+	light.energy = 1.8
 	light.texture = light_tex
-	light.texture_scale = 2.5
+	light.texture_scale = 3.0
 	light.position = Vector2(0, -5)  # roughly center of player body
 	light.shadow_enabled = false
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
-	print("PlayerLight: energy=1.3, scale=2.5, color=", light.color)
+	print("PlayerLight: energy=1.8, scale=3.0, color=", light.color)
 
 
 func _setup_attack_hitbox() -> void:
