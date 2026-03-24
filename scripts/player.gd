@@ -62,6 +62,8 @@ var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 # Attack switching (debug)
 var available_attacks: Array = ["None", "Dark Orb", "Fire", "Ice", "Void", "Lightning", "Arrow", "Energy"]
 var current_attack_index: int = 1
+var available_summons: Array = ["None", "Earth Hammer"]
+var current_summon_index: int = 1
 var _attack_label: Label
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
@@ -281,13 +283,18 @@ func _flash_attack_glow() -> void:
 func _setup_attack_label() -> void:
 	_attack_label = Label.new()
 	_attack_label.name = "AttackLabel"
-	_attack_label.text = "Attack: " + available_attacks[current_attack_index]
 	_attack_label.add_theme_font_size_override("font_size", 11)
 	_attack_label.add_theme_color_override("font_color", Color(0.7, 0.5, 1.0))
 	_attack_label.position = Vector2(-50, -45)
 	_attack_label.z_index = 20
 	add_child(_attack_label)
-	print("Attack switcher: Tab to cycle, current=", available_attacks[current_attack_index])
+	_update_debug_label()
+	print("Skill switcher: Tab=attack, `=summon")
+
+
+func _update_debug_label() -> void:
+	if _attack_label:
+		_attack_label.text = "J: " + available_attacks[current_attack_index] + " | K: " + available_summons[current_summon_index]
 
 
 func _repel_enemies_from_shield() -> void:
@@ -491,6 +498,28 @@ func _spawn_projectile() -> void:
 	print("Spawned projectile: ", attack_name, " at: ", projectile.global_position)
 
 
+func _spawn_summon() -> void:
+	var summon_name: String = available_summons[current_summon_index]
+	if summon_name == "None":
+		return
+
+	var summon_scene: PackedScene
+	match summon_name:
+		"Earth Hammer":
+			summon_scene = preload("res://scenes/summons/earth_hammer_summon.tscn")
+		_:
+			return
+
+	var summon := summon_scene.instantiate()
+	var dir: int = -1 if animated_sprite.flip_h else 1
+	summon.direction = dir
+	var offset: Vector2 = summon.spawn_offset
+	offset.x *= dir
+	summon.global_position = global_position + offset
+	get_parent().add_child(summon)
+	print("Spawned summon: ", summon_name)
+
+
 func _spawn_blood_effect() -> void:
 	var BLOOD_FRAME_W := 82
 	var BLOOD_FRAME_H := 65
@@ -685,9 +714,13 @@ func _input(event: InputEvent) -> void:
 		KEY_TAB:
 			if key_event.pressed and not key_event.echo:
 				current_attack_index = (current_attack_index + 1) % available_attacks.size()
-				var attack_name: String = available_attacks[current_attack_index]
-				_attack_label.text = "Attack: " + attack_name
-				print("Switched to attack: ", attack_name)
+				_update_debug_label()
+				print("Switched to attack: ", available_attacks[current_attack_index])
+		KEY_QUOTELEFT:
+			if key_event.pressed and not key_event.echo:
+				current_summon_index = (current_summon_index + 1) % available_summons.size()
+				_update_debug_label()
+				print("Switched to summon: ", available_summons[current_summon_index])
 
 
 func _on_animation_finished() -> void:
@@ -829,6 +862,8 @@ func _physics_process(delta: float) -> void:
 			# Activate shield zone facing player direction
 			_shield_zone.scale.x = facing
 			_shield_zone.monitoring = true
+			# Spawn summon on shield activation
+			_spawn_summon()
 	elif is_shielding and not shield_held:
 		# Release shield
 		_shield_phase = "down"
