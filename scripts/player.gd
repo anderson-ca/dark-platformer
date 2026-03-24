@@ -60,7 +60,7 @@ const COMBO_WINDOW_TIME := 0.4
 var _orb_effect_spawned: bool = false
 var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 # Attack switching (debug)
-var available_attacks: Array = ["None", "Dark Orb"]
+var available_attacks: Array = ["None", "Dark Orb", "Fire"]
 var current_attack_index: int = 1
 var _attack_label: Label
 var is_shielding: bool = false
@@ -458,16 +458,26 @@ func _spawn_dash_ghost() -> void:
 	tween.tween_callback(ghost.queue_free)
 
 
-func _spawn_orb_attack_effect() -> void:
-	if available_attacks[current_attack_index] == "None":
+func _spawn_projectile() -> void:
+	var attack_name: String = available_attacks[current_attack_index]
+	if attack_name == "None":
 		return
-	var orb_scene := preload("res://scenes/projectiles/orb_projectile.tscn")
-	var orb := orb_scene.instantiate()
+
+	var projectile_scene: PackedScene
+	match attack_name:
+		"Dark Orb":
+			projectile_scene = preload("res://scenes/projectiles/orb_projectile.tscn")
+		"Fire":
+			projectile_scene = preload("res://scenes/projectiles/fire_projectile.tscn")
+		_:
+			return
+
+	var projectile := projectile_scene.instantiate()
 	var dir: int = -1 if animated_sprite.flip_h else 1
-	orb.direction = dir
-	orb.global_position = global_position + Vector2(dir * 30, -5)
-	get_parent().add_child(orb)
-	print("Spawned orb projectile at: ", orb.global_position)
+	projectile.direction = dir
+	projectile.global_position = global_position + Vector2(dir * 30, -5)
+	get_parent().add_child(projectile)
+	print("Spawned projectile: ", attack_name, " at: ", projectile.global_position)
 
 
 func _spawn_blood_effect() -> void:
@@ -887,16 +897,16 @@ func _physics_process(delta: float) -> void:
 			_attack_hitbox.monitoring = (f >= 4 and f <= 6)
 			if f == 4 and not _orb_effect_spawned:
 				_orb_effect_spawned = true
-				_spawn_orb_attack_effect()
+				_spawn_projectile()
 		elif _combo_stage == 2:
 			# full attack (16 frames): first orb 4-6, second orb 12-14
 			_attack_hitbox.monitoring = (f >= 4 and f <= 6) or (f >= 12 and f <= 14)
 			if f == 4 and not _orb_effect_spawned:
 				_orb_effect_spawned = true
-				_spawn_orb_attack_effect()
+				_spawn_projectile()
 			if f == 12 and not _orb_effect_spawned_2:
 				_orb_effect_spawned_2 = true
-				_spawn_orb_attack_effect()
+				_spawn_projectile()
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta

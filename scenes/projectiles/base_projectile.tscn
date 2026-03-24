@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/skills/base_projectile.gd" id="1_base"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_base"]
+radius = 8.0
+
+[node name="BaseProjectile" type="Area2D"]
+collision_layer = 0
+collision_mask = 4
+monitoring = true
+monitorable = false
+script = ExtResource("1_base")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_base")
