@@ -363,27 +363,27 @@ func _spawn_shield_block_effect() -> void:
 	print("Shield block effect: ", SB_FRAMES, " frames of ", SB_FRAME_W, "x", SB_FRAME_H, " @ 14 FPS, scale=0.3")
 
 
-func _spawn_double_jump_ring() -> void:
-	var ring := Node2D.new()
-	get_parent().add_child(ring)
-	ring.global_position = global_position + Vector2(0, 10)
-
-	var num_segments := 16
-	var radius := 8.0
-	for i in num_segments:
-		var line := Line2D.new()
-		var angle_start := (i / float(num_segments)) * TAU
-		var angle_end := ((i + 1) / float(num_segments)) * TAU
-		line.add_point(Vector2(cos(angle_start), sin(angle_start)) * radius)
-		line.add_point(Vector2(cos(angle_end), sin(angle_end)) * radius)
-		line.width = 2.0
-		line.default_color = Color(0.7, 0.6, 1.0, 1.0)
-		ring.add_child(line)
-
-	var tween := create_tween()
-	tween.tween_property(ring, "scale", Vector2(4.0, 2.0), 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	tween.parallel().tween_property(ring, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(ring.queue_free)
+func _spawn_double_jump_burst() -> void:
+	var offsets := [
+		Vector2(-15, 10),
+		Vector2(0, 15),
+		Vector2(15, 10)
+	]
+	for offset in offsets:
+		var ghost := animated_sprite.duplicate() as AnimatedSprite2D
+		get_parent().add_child(ghost)
+		ghost.global_position = global_position + offset
+		ghost.animation = animated_sprite.animation
+		ghost.frame = animated_sprite.frame
+		ghost.flip_h = animated_sprite.flip_h
+		ghost.pause()
+		ghost.modulate = Color(0.5, 0.5, 1.0, 0.5)
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(ghost, "global_position", ghost.global_position + Vector2(offset.x * 0.5, 20), 0.25)
+		tween.tween_property(ghost, "modulate:a", 0.0, 0.25)
+		tween.set_parallel(false)
+		tween.tween_callback(ghost.queue_free)
 
 
 func _spawn_dash_ghost() -> void:
@@ -910,7 +910,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_VELOCITY * DOUBLE_JUMP_FACTOR
 			has_double_jump = false
 			jump_buffer_timer = 0.0
-			_spawn_double_jump_ring()
+			_spawn_double_jump_burst()
 
 	# --- Jump buffer on landing ---
 	if on_floor and jump_buffer_timer > 0.0:
