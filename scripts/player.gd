@@ -59,6 +59,10 @@ var _combo_timer: float = 0.0
 const COMBO_WINDOW_TIME := 0.4
 var _orb_effect_spawned: bool = false
 var _orb_effect_spawned_2: bool = false  # for second orb in full attack
+# Attack switching (debug)
+var available_attacks: Array = ["None", "Dark Orb"]
+var current_attack_index: int = 1
+var _attack_label: Label
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_zone: Area2D  # kept but unused — distance check instead
@@ -114,6 +118,7 @@ func _ready() -> void:
 	_setup_player_light()
 	_setup_attack_hitbox()
 	_setup_shield_zone()
+	_setup_attack_label()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
@@ -232,6 +237,18 @@ func _setup_shield_zone() -> void:
 	_shield_zone.add_child(col)
 	add_child(_shield_zone)
 	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, 360° protection, NO push force, ghoul stops in place")
+
+
+func _setup_attack_label() -> void:
+	_attack_label = Label.new()
+	_attack_label.name = "AttackLabel"
+	_attack_label.text = "Attack: " + available_attacks[current_attack_index]
+	_attack_label.add_theme_font_size_override("font_size", 11)
+	_attack_label.add_theme_color_override("font_color", Color(0.7, 0.5, 1.0))
+	_attack_label.position = Vector2(-50, -45)
+	_attack_label.z_index = 20
+	add_child(_attack_label)
+	print("Attack switcher: Tab to cycle, current=", available_attacks[current_attack_index])
 
 
 func _repel_enemies_from_shield() -> void:
@@ -403,6 +420,8 @@ func _spawn_dash_ghost() -> void:
 
 
 func _spawn_orb_attack_effect() -> void:
+	if available_attacks[current_attack_index] == "None":
+		return
 	var orb_scene := preload("res://scenes/projectiles/orb_projectile.tscn")
 	var orb := orb_scene.instantiate()
 	var dir: int = -1 if animated_sprite.flip_h else 1
@@ -603,6 +622,12 @@ func _input(event: InputEvent) -> void:
 		KEY_L:
 			if key_event.pressed and not key_event.echo:
 				_key_shockwave_just = true
+		KEY_TAB:
+			if key_event.pressed and not key_event.echo:
+				current_attack_index = (current_attack_index + 1) % available_attacks.size()
+				var attack_name: String = available_attacks[current_attack_index]
+				_attack_label.text = "Attack: " + attack_name
+				print("Switched to attack: ", attack_name)
 
 
 func _on_animation_finished() -> void:
