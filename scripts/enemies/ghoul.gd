@@ -273,9 +273,40 @@ func _on_animation_finished() -> void:
 			queue_free()
 
 
+func _spawn_hit_effect() -> void:
+	var HIT_FRAME_W := 82
+	var HIT_FRAME_H := 65
+	var HIT_FRAMES := 9
+	var hit_tex := load("res://assets/effects/combat/hit/hit 4.png") as Texture2D
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("hit_spark")
+	sf.set_animation_speed("hit_spark", 14.0)
+	sf.set_animation_loop("hit_spark", false)
+	for i in range(HIT_FRAMES):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = hit_tex
+		atlas.region = Rect2(i * HIT_FRAME_W, 0, HIT_FRAME_W, HIT_FRAME_H)
+		sf.add_frame("hit_spark", atlas)
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = sf
+	sprite.z_index = 10
+	sprite.scale = Vector2(0.3, 0.3)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.global_position = global_position + Vector2(0, -12)
+	sprite.animation_finished.connect(sprite.queue_free)
+	get_parent().add_child(sprite)
+	sprite.play("hit_spark")
+	print("Hit spark: ", HIT_FRAMES, " frames of ", HIT_FRAME_W, "x", HIT_FRAME_H, " @ 14 FPS, scale=0.3")
+
+
 func take_damage(from_position: Vector2) -> void:
 	if state == State.DEATH:
 		return
+	_spawn_hit_effect()
 	health -= 1
 	print("Ghoul hit! health=", health, " (during ", State.keys()[state], ")")
 	# Knockback away from damage source
