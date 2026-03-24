@@ -23,7 +23,7 @@ var current_room_index: int = 0
 @onready var rain_splash: CPUParticles2D = $Player/Camera2D/RainSplash
 
 var _canvas_modulate: CanvasModulate
-var _base_darkness := Color(0.15, 0.15, 0.18, 1.0)
+var _base_darkness := Color(0.35, 0.35, 0.4, 1.0)
 var _parallax_bg: ParallaxBackground
 var _base_bg_darkness := Color(0.5, 0.5, 0.55, 1.0)
 var _lightning_timer: float = 0.0
