@@ -35,18 +35,28 @@ func _ready() -> void:
 	animated_sprite.sprite_frames = sf
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	animated_sprite.modulate = Color(0.8, 0.5, 1.0, 1.0)
 	animated_sprite.play("burst")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
-	# Purple PointLight — illuminates environment like a purple light bulb
-	if glow_light:
-		glow_light.texture = _make_light_texture()
-		glow_light.color = Color(0.7, 0.2, 1.0, 1.0)
-		glow_light.energy = 2.2
-		glow_light.texture_scale = 1.5
+	# Purple outline shader
+	var shader := load("res://shaders/purple_outline.gdshader")
+	var shader_mat := ShaderMaterial.new()
+	shader_mat.shader = shader
+	shader_mat.set_shader_parameter("outline_color", Color(0.6, 0.2, 1.0, 1.0))
+	shader_mat.set_shader_parameter("outline_width", 1.5)
+	animated_sprite.material = shader_mat
+
+	# Generate light texture
+	glow_light.texture = _make_light_texture()
+
+	# Pulse the glow
+	var tween := create_tween().set_loops()
+	tween.tween_property(glow_light, "energy", 2.0, 0.15)
+	tween.tween_property(glow_light, "energy", 1.2, 0.15)
 
 	area_entered.connect(_on_area_entered)
-	print("Orb purple light initialized, direction: ", direction)
+	print("Orb glow and outline initialized, direction: ", direction)
 
 
 func _make_light_texture() -> ImageTexture:
@@ -76,7 +86,6 @@ func _on_area_entered(area: Area2D) -> void:
 		else:
 			enemy.take_damage(global_position)
 		print("Orb hit enemy: ", enemy.name)
-
 
 
 func _on_animation_finished() -> void:

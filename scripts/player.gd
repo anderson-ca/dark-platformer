@@ -257,10 +257,10 @@ func _setup_attack_glow() -> void:
 
 	_attack_glow_light = PointLight2D.new()
 	_attack_glow_light.name = "AttackGlowLight"
-	_attack_glow_light.color = Color(0.7, 0.2, 1.0, 1.0)
+	_attack_glow_light.color = Color(0.6, 0.2, 1.0, 1.0)
 	_attack_glow_light.energy = 0.0
 	_attack_glow_light.texture = light_tex
-	_attack_glow_light.texture_scale = 1.8
+	_attack_glow_light.texture_scale = 1.2
 	_attack_glow_light.position = Vector2(0, -10)
 	_attack_glow_light.shadow_enabled = false
 	_attack_glow_light.blend_mode = Light2D.BLEND_MODE_ADD
