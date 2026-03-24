@@ -22,8 +22,8 @@ var current_room_index: int = 0
 @onready var rain: CPUParticles2D = $Player/Camera2D/Rain
 @onready var rain_splash: CPUParticles2D = $Player/Camera2D/RainSplash
 
-var _lightning_flash_rect: ColorRect
-var _lightning_layer: CanvasLayer
+var _canvas_modulate: CanvasModulate
+var _base_darkness := Color(0.05, 0.05, 0.08, 1.0)
 var _lightning_timer: float = 0.0
 
 
@@ -51,27 +51,17 @@ func _ready() -> void:
 	print("ParallaxBackground layers modulate: ", bg_tint)
 
 	# Dark atmosphere — darken everything, player/campfire lights punch through
-	var canvas_mod := CanvasModulate.new()
-	canvas_mod.name = "DarkAtmosphere"
-	print("CanvasModulate BEFORE: Color(0.15, 0.15, 0.2, 1.0)")
-	canvas_mod.color = Color(0.05, 0.05, 0.08, 1.0)
-	print("CanvasModulate AFTER: ", canvas_mod.color)
-	add_child(canvas_mod)
+	_canvas_modulate = CanvasModulate.new()
+	_canvas_modulate.name = "DarkAtmosphere"
+	_canvas_modulate.color = _base_darkness
+	add_child(_canvas_modulate)
+	print("CanvasModulate: ", _canvas_modulate.color)
 
 	hud_node.set_player(player)
 
-	# Lightning flash overlay
-	_lightning_layer = CanvasLayer.new()
-	_lightning_layer.name = "LightningLayer"
-	_lightning_layer.layer = 9
-	add_child(_lightning_layer)
-	_lightning_flash_rect = ColorRect.new()
-	_lightning_flash_rect.size = Vector2(800, 450)
-	_lightning_flash_rect.color = Color(1, 1, 1, 0)
-	_lightning_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_lightning_layer.add_child(_lightning_flash_rect)
+	# Lightning timer
 	_lightning_timer = randf_range(8.0, 20.0)
-	print("Lightning system: timer=", _lightning_timer, "s")
+	print("Lightning system: multi-burst via CanvasModulate, timer=", _lightning_timer, "s")
 
 	load_room(0)
 
@@ -421,21 +411,24 @@ func _process(delta: float) -> void:
 
 
 func _do_lightning_flash() -> void:
-	var intensity := randf_range(0.15, 0.35)
-	var is_double := randf() < 0.3  # 30% chance of double flash
-	print("Lightning flash! intensity=", intensity, " double=", is_double)
-
-	var tween := create_tween()
-	# First flash
-	tween.tween_property(_lightning_flash_rect, "color:a", intensity, 0.03)
-	tween.tween_property(_lightning_flash_rect, "color:a", intensity * 0.3, 0.05)
-	if is_double:
-		# Brief pause then second flash
-		tween.tween_property(_lightning_flash_rect, "color:a", 0.0, 0.04)
-		tween.tween_property(_lightning_flash_rect, "color:a", intensity * 0.7, 0.03)
-		tween.tween_property(_lightning_flash_rect, "color:a", intensity * 0.2, 0.05)
-	# Fade out
-	tween.tween_property(_lightning_flash_rect, "color:a", 0.0, 0.1)
+	var num_bursts := randi_range(2, 3)
+	for i in num_bursts:
+		var intensity := randf_range(0.4, 0.8)
+		if i == 0:
+			intensity = randf_range(0.6, 0.9)
+		var flash_color := Color(intensity, intensity, intensity + 0.05, 1.0)
+		# Quick flash up
+		var tween := create_tween()
+		tween.tween_property(_canvas_modulate, "color", flash_color, randf_range(0.03, 0.05))
+		await tween.finished
+		# Slower fade down
+		tween = create_tween()
+		tween.tween_property(_canvas_modulate, "color", _base_darkness, randf_range(0.08, 0.15))
+		await tween.finished
+		# Brief pause between bursts
+		if i < num_bursts - 1:
+			await get_tree().create_timer(randf_range(0.05, 0.1)).timeout
+	print("Lightning: ", num_bursts, " bursts")
 
 
 func _on_hazard() -> void:
