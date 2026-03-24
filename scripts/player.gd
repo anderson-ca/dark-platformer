@@ -4,7 +4,7 @@ signal hit_hazard
 
 # Movement
 const SPEED = 210.0
-const JUMP_VELOCITY = -460.0
+const JUMP_VELOCITY = -380.0
 const GRAVITY = 1400.0
 const MAX_FALL_SPEED = 880.0
 const GROUND_ACCELERATION = 1700.0
@@ -26,8 +26,8 @@ const WALL_JUMP_VY = 380.0
 const WALL_JUMP_LOCKOUT = 0.2
 
 # Dash
-const DASH_SPEED = 500.0
-const DASH_DURATION = 0.15
+const DASH_SPEED = 400.0
+const DASH_DURATION = 0.12
 const DASH_COOLDOWN = 0.6
 
 # Sprite frame size (dark sage strips use 192×192 cells)
