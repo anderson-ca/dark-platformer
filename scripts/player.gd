@@ -251,6 +251,36 @@ func _repel_enemies_from_shield() -> void:
 				enemy.velocity.x = 0.0
 
 
+func _spawn_electric_hit(pos: Vector2) -> void:
+	var EL_FRAME_W := 82
+	var EL_FRAME_H := 65
+	var EL_FRAMES := 9
+	var el_tex := load("res://assets/effects/combat/hit/Electric Hit 4.png") as Texture2D
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("electric")
+	sf.set_animation_speed("electric", 14.0)
+	sf.set_animation_loop("electric", false)
+	for i in range(EL_FRAMES):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = el_tex
+		atlas.region = Rect2(i * EL_FRAME_W, 0, EL_FRAME_W, EL_FRAME_H)
+		sf.add_frame("electric", atlas)
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = sf
+	sprite.z_index = 10
+	sprite.scale = Vector2(0.4, 0.4)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.global_position = pos + Vector2(0, -12)
+	sprite.animation_finished.connect(sprite.queue_free)
+	get_parent().add_child(sprite)
+	sprite.play("electric")
+	print("Electric hit: ", EL_FRAMES, " frames of ", EL_FRAME_W, "x", EL_FRAME_H, " @ 14 FPS, scale=0.4")
+
+
 func _apply_shockwave_effect() -> void:
 	var hit_count := 0
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -270,6 +300,7 @@ func _apply_shockwave_effect() -> void:
 			enemy.velocity.y = -120.0
 			if enemy.has_method("apply_stun"):
 				enemy.apply_stun(SHOCKWAVE_STUN)
+			_spawn_electric_hit(enemy.global_position)
 	print("Shockwave: radius=", SHOCKWAVE_RADIUS, "px knockback=", SHOCKWAVE_KNOCKBACK, " stun=", SHOCKWAVE_STUN, "s damage=", SHOCKWAVE_DAMAGE, " hit=", hit_count, " enemies")
 
 
