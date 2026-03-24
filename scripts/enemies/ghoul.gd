@@ -32,6 +32,8 @@ var _shield_blocked_timer: float = 0.0
 const SHIELD_BACK_OFF_TIME := 1.5
 var is_stunned: bool = false
 var stun_timer: float = 0.0
+var knockback_velocity: Vector2 = Vector2.ZERO
+const KNOCKBACK_FRICTION := 400.0
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
@@ -168,6 +170,11 @@ func _physics_process(delta: float) -> void:
 			var push: float = push_dir * overlap * 3.0  # proportional push
 			velocity.x += clampf(push, -SOFT_SEPARATION_FORCE, SOFT_SEPARATION_FORCE)
 
+	# Apply knockback if any
+	if knockback_velocity.length() > 10.0:
+		velocity.x = knockback_velocity.x
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, KNOCKBACK_FRICTION * delta)
+
 	move_and_slide()
 
 
@@ -301,6 +308,23 @@ func _spawn_hit_effect() -> void:
 	get_parent().add_child(sprite)
 	sprite.play("hit_spark")
 	print("Hit spark: ", HIT_FRAMES, " frames of ", HIT_FRAME_W, "x", HIT_FRAME_H, " @ 14 FPS, scale=0.3")
+
+
+func take_damage_with_knockback(amount: int, knockback: Vector2) -> void:
+	if state == State.DEATH:
+		return
+	_spawn_hit_effect()
+	health -= amount
+	knockback_velocity = knockback
+	print("Ghoul knockback applied: ", knockback, " health=", health)
+	if health <= 0:
+		_enter_state(State.DEATH)
+	elif state != State.ATTACK:
+		velocity.x = knockback.x
+		velocity.y = -80.0
+		attack_count = 0
+		attack_cooldown_timer = 0.0
+		_enter_state(State.HIT)
 
 
 func take_damage(from_position: Vector2) -> void:

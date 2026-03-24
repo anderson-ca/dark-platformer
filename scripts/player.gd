@@ -403,40 +403,13 @@ func _spawn_dash_ghost() -> void:
 
 
 func _spawn_orb_attack_effect() -> void:
-	var ORB_FRAME := 128
-	var ORB_COLS := 5
-	var ORB_FRAMES := 8
-	var orb_tex := load("res://assets/effects/combat/attack/dark_power.png") as Texture2D
-
-	var sf := SpriteFrames.new()
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
-	sf.add_animation("burst")
-	sf.set_animation_speed("burst", 14.0)
-	sf.set_animation_loop("burst", false)
-	for i in range(ORB_FRAMES):
-		var col := i % ORB_COLS
-		var row := i / ORB_COLS
-		var atlas := AtlasTexture.new()
-		atlas.atlas = orb_tex
-		atlas.region = Rect2(col * ORB_FRAME, row * ORB_FRAME, ORB_FRAME, ORB_FRAME)
-		sf.add_frame("burst", atlas)
-
-	var effect := AnimatedSprite2D.new()
-	effect.sprite_frames = sf
-	effect.z_index = 5
-	effect.scale = Vector2(0.25, 0.25)
-	effect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	effect.global_position = global_position + Vector2(facing * 30, -5)
-	effect.flip_h = animated_sprite.flip_h
-	effect.animation_finished.connect(effect.queue_free)
-	get_parent().add_child(effect)
-	effect.play("burst")
-
-	# Travel forward like a hadouken
-	var travel_distance := 80.0
-	var tween := create_tween()
-	tween.tween_property(effect, "global_position:x", effect.global_position.x + facing * travel_distance, 0.4)
+	var orb_scene := preload("res://scenes/projectiles/orb_projectile.tscn")
+	var orb := orb_scene.instantiate()
+	var dir: int = -1 if animated_sprite.flip_h else 1
+	orb.direction = dir
+	orb.global_position = global_position + Vector2(dir * 30, -5)
+	get_parent().add_child(orb)
+	print("Spawned orb projectile at: ", orb.global_position)
 
 
 func _spawn_blood_effect() -> void:
