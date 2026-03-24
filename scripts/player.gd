@@ -57,6 +57,8 @@ var _combo_stage: int = 0  # 0=none, 1=attack1 playing, 2=attack2 playing
 var _combo_window: bool = false
 var _combo_timer: float = 0.0
 const COMBO_WINDOW_TIME := 0.4
+var _orb_effect_spawned: bool = false
+var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_zone: Area2D  # kept but unused — distance check instead
@@ -398,6 +400,38 @@ func _spawn_dash_ghost() -> void:
 	var tween := create_tween()
 	tween.tween_property(ghost, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(ghost.queue_free)
+
+
+func _spawn_orb_attack_effect() -> void:
+	var ORB_FRAME := 128
+	var ORB_COLS := 5
+	var ORB_FRAMES := 8
+	var orb_tex := load("res://assets/effects/combat/attack/dark_power.png") as Texture2D
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("burst")
+	sf.set_animation_speed("burst", 14.0)
+	sf.set_animation_loop("burst", false)
+	for i in range(ORB_FRAMES):
+		var col := i % ORB_COLS
+		var row := i / ORB_COLS
+		var atlas := AtlasTexture.new()
+		atlas.atlas = orb_tex
+		atlas.region = Rect2(col * ORB_FRAME, row * ORB_FRAME, ORB_FRAME, ORB_FRAME)
+		sf.add_frame("burst", atlas)
+
+	var effect := AnimatedSprite2D.new()
+	effect.sprite_frames = sf
+	effect.z_index = 5
+	effect.scale = Vector2(0.4, 0.4)
+	effect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	effect.global_position = global_position + Vector2(facing * 30, -5)
+	effect.flip_h = animated_sprite.flip_h
+	effect.animation_finished.connect(effect.queue_free)
+	get_parent().add_child(effect)
+	effect.play("burst")
 
 
 func _spawn_blood_effect() -> void:
@@ -757,6 +791,8 @@ func _physics_process(delta: float) -> void:
 			is_attacking = true
 			_combo_stage = 2
 			_combo_window = false
+			_orb_effect_spawned = false
+			_orb_effect_spawned_2 = false
 			velocity.x = 0.0
 			animated_sprite.play("attack")
 			_attack_hitbox.scale.x = facing
@@ -766,6 +802,7 @@ func _physics_process(delta: float) -> void:
 			is_attacking = true
 			_combo_stage = 1
 			_combo_window = false
+			_orb_effect_spawned = false
 			velocity.x = 0.0
 			animated_sprite.play("attack1")
 			_attack_hitbox.scale.x = facing
@@ -795,14 +832,23 @@ func _physics_process(delta: float) -> void:
 				_update_animation()
 				_update_dust(false)
 				return
-		# Frame-synced hitbox: only active during orb impact frames
+		# Frame-synced hitbox + VFX: only active during orb impact frames
 		var f := animated_sprite.frame
 		if _combo_stage == 1:
 			# attack1 (8 frames): impact at frames 4-6
 			_attack_hitbox.monitoring = (f >= 4 and f <= 6)
+			if f == 4 and not _orb_effect_spawned:
+				_orb_effect_spawned = true
+				_spawn_orb_attack_effect()
 		elif _combo_stage == 2:
 			# full attack (16 frames): first orb 4-6, second orb 12-14
 			_attack_hitbox.monitoring = (f >= 4 and f <= 6) or (f >= 12 and f <= 14)
+			if f == 4 and not _orb_effect_spawned:
+				_orb_effect_spawned = true
+				_spawn_orb_attack_effect()
+			if f == 12 and not _orb_effect_spawned_2:
+				_orb_effect_spawned_2 = true
+				_spawn_orb_attack_effect()
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta
