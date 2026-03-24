@@ -93,6 +93,7 @@ var _key_shield_held: bool = false
 var _key_shockwave_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+var _attack_glow_light: PointLight2D
 
 # Dust animated sprites
 var _dust_run: AnimatedSprite2D
@@ -119,6 +120,7 @@ func _ready() -> void:
 	_setup_attack_hitbox()
 	_setup_shield_zone()
 	_setup_attack_label()
+	_setup_attack_glow()
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 
@@ -237,6 +239,43 @@ func _setup_shield_zone() -> void:
 	_shield_zone.add_child(col)
 	add_child(_shield_zone)
 	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, 360° protection, NO push force, ghoul stops in place")
+
+
+func _setup_attack_glow() -> void:
+	# Generate light texture
+	var size := 64
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var radius := size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist := Vector2(x, y).distance_to(center)
+			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
+			alpha = alpha * alpha
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	var light_tex := ImageTexture.create_from_image(img)
+
+	_attack_glow_light = PointLight2D.new()
+	_attack_glow_light.name = "AttackGlowLight"
+	_attack_glow_light.color = Color(0.6, 0.2, 1.0, 1.0)
+	_attack_glow_light.energy = 0.0
+	_attack_glow_light.texture = light_tex
+	_attack_glow_light.texture_scale = 1.2
+	_attack_glow_light.position = Vector2(0, -10)
+	_attack_glow_light.shadow_enabled = false
+	_attack_glow_light.blend_mode = Light2D.BLEND_MODE_ADD
+	_attack_glow_light.enabled = false
+	add_child(_attack_glow_light)
+
+
+func _flash_attack_glow() -> void:
+	if not _attack_glow_light:
+		return
+	_attack_glow_light.enabled = true
+	_attack_glow_light.energy = 2.5
+	var tween := create_tween()
+	tween.tween_property(_attack_glow_light, "energy", 0.0, 0.25)
+	tween.tween_callback(func(): _attack_glow_light.enabled = false)
 
 
 func _setup_attack_label() -> void:
@@ -633,6 +672,7 @@ func _input(event: InputEvent) -> void:
 func _on_animation_finished() -> void:
 	if animated_sprite.animation == "attack1":
 		_attack_hitbox.monitoring = false
+		animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		# Single tap finished — open combo window for double tap
 		_combo_window = true
 		_combo_timer = COMBO_WINDOW_TIME
@@ -643,6 +683,7 @@ func _on_animation_finished() -> void:
 		_combo_stage = 0
 		_combo_window = false
 		_attack_hitbox.monitoring = false
+		animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	elif animated_sprite.animation == "shield_up":
 		_shield_phase = "hold"
 		animated_sprite.play("shield_hold")
@@ -798,6 +839,8 @@ func _physics_process(delta: float) -> void:
 			_orb_effect_spawned_2 = false
 			velocity.x = 0.0
 			animated_sprite.play("attack")
+			animated_sprite.modulate = Color(0.85, 0.7, 1.0, 1.0)
+			_flash_attack_glow()
 			_attack_hitbox.scale.x = facing
 			_attack_hitbox.monitoring = false  # enabled on impact frames
 		elif not is_attacking and _combo_stage == 0:
@@ -808,6 +851,8 @@ func _physics_process(delta: float) -> void:
 			_orb_effect_spawned = false
 			velocity.x = 0.0
 			animated_sprite.play("attack1")
+			animated_sprite.modulate = Color(0.85, 0.7, 1.0, 1.0)
+			_flash_attack_glow()
 			_attack_hitbox.scale.x = facing
 			_attack_hitbox.monitoring = false  # enabled on impact frames
 
