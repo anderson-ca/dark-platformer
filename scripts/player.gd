@@ -480,6 +480,7 @@ func _spawn_projectile() -> void:
 	var dir: int = -1 if animated_sprite.flip_h else 1
 	projectile.direction = dir
 	projectile.global_position = global_position + Vector2(dir * 30, -5)
+	projectile.muzzle_spawn_position = global_position + Vector2(dir * 12, -5)
 	get_parent().add_child(projectile)
 	print("Spawned projectile: ", attack_name, " at: ", projectile.global_position)
 

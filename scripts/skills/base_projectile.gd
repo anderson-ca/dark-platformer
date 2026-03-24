@@ -24,6 +24,7 @@ var hit_frame_size: Vector2 = Vector2(32, 32)
 # Runtime
 var direction: int = 1
 var hit_enemies: Array = []
+var muzzle_spawn_position: Vector2 = Vector2.ZERO
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -99,9 +100,12 @@ func _spawn_muzzle_effect() -> void:
 	muzzle.flip_h = (direction == -1)
 	muzzle.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
-	# Add to world at current position (doesn't travel with bullet)
+	# Spawn at hand position if set, otherwise at projectile position
 	get_parent().add_child(muzzle)
-	muzzle.global_position = global_position
+	if muzzle_spawn_position != Vector2.ZERO:
+		muzzle.global_position = muzzle_spawn_position
+	else:
+		muzzle.global_position = global_position
 	muzzle.play("muzzle")
 	muzzle.animation_finished.connect(muzzle.queue_free)
 
