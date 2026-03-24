@@ -95,6 +95,8 @@ var _dust_wall: AnimatedSprite2D
 var _dust_dash: AnimatedSprite2D
 var _was_on_floor: bool = false
 var _was_dashing: bool = false
+var _dash_ghost_timer: float = 0.0
+const DASH_GHOST_INTERVAL := 0.03
 
 
 func _ready() -> void:
@@ -359,6 +361,20 @@ func _spawn_shield_block_effect() -> void:
 	get_parent().add_child(sprite)
 	sprite.play("shield_block")
 	print("Shield block effect: ", SB_FRAMES, " frames of ", SB_FRAME_W, "x", SB_FRAME_H, " @ 14 FPS, scale=0.3")
+
+
+func _spawn_dash_ghost() -> void:
+	var ghost := animated_sprite.duplicate() as AnimatedSprite2D
+	get_parent().add_child(ghost)
+	ghost.global_position = global_position
+	ghost.animation = animated_sprite.animation
+	ghost.frame = animated_sprite.frame
+	ghost.flip_h = animated_sprite.flip_h
+	ghost.pause()
+	ghost.modulate = Color(0.5, 0.5, 1.0, 0.6)
+	var tween := create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(ghost.queue_free)
 
 
 func _spawn_blood_effect() -> void:
@@ -795,6 +811,10 @@ func _physics_process(delta: float) -> void:
 
 	# --- Dashing ---
 	if dash_timer > 0.0:
+		_dash_ghost_timer += delta
+		if _dash_ghost_timer >= DASH_GHOST_INTERVAL:
+			_spawn_dash_ghost()
+			_dash_ghost_timer = 0.0
 		velocity.x = dash_direction * DASH_SPEED
 		if not on_floor:
 			velocity.y = min(velocity.y, 30.0)
@@ -815,6 +835,7 @@ func _physics_process(delta: float) -> void:
 			dash_cooldown_timer = DASH_COOLDOWN
 			dash_direction = facing
 			is_invincible = true
+			_dash_ghost_timer = 0.0
 			print("Dash i-frames: invincible during dash")
 			if not on_floor:
 				has_air_dash = false
