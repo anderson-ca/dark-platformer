@@ -60,7 +60,7 @@ const COMBO_WINDOW_TIME := 0.4
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
 var _shield_zone: Area2D  # kept but unused — distance check instead
-const SHIELD_ZONE_WIDTH := 25.0
+const SHIELD_ZONE_WIDTH := 15.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var is_dead: bool = false
