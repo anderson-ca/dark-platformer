@@ -24,6 +24,8 @@ var current_room_index: int = 0
 
 var _canvas_modulate: CanvasModulate
 var _base_darkness := Color(0.05, 0.05, 0.08, 1.0)
+var _parallax_bg: ParallaxBackground
+var _base_bg_darkness := Color(0.5, 0.5, 0.55, 1.0)
 var _lightning_timer: float = 0.0
 
 
@@ -43,12 +45,11 @@ func _ready() -> void:
 	player.hit_hazard.connect(_on_hazard)
 
 	# Darken parallax background separately for moodier atmosphere
-	var parallax_bg := $ParallaxBackground
-	var bg_tint := Color(0.5, 0.5, 0.55, 1.0)
-	for layer in parallax_bg.get_children():
+	_parallax_bg = $ParallaxBackground
+	for layer in _parallax_bg.get_children():
 		if layer is ParallaxLayer:
-			layer.modulate = bg_tint
-	print("ParallaxBackground layers modulate: ", bg_tint)
+			layer.modulate = _base_bg_darkness
+	print("ParallaxBackground layers modulate: ", _base_bg_darkness)
 
 	# Dark atmosphere — darken everything, player/campfire lights punch through
 	_canvas_modulate = CanvasModulate.new()
@@ -417,13 +418,27 @@ func _do_lightning_flash() -> void:
 		if i == 0:
 			intensity = randf_range(0.85, 1.0)
 		var flash_color := Color(intensity, intensity, intensity + 0.1, 1.0)
-		# Quick flash up
+		var bg_flash := Color(
+			_base_bg_darkness.r + intensity * 0.5,
+			_base_bg_darkness.g + intensity * 0.5,
+			_base_bg_darkness.b + intensity * 0.5,
+			1.0
+		)
+		# Quick flash up — both scene and background together
 		var tween := create_tween()
+		tween.set_parallel(true)
 		tween.tween_property(_canvas_modulate, "color", flash_color, randf_range(0.03, 0.05))
+		for layer in _parallax_bg.get_children():
+			if layer is ParallaxLayer:
+				tween.tween_property(layer, "modulate", bg_flash, randf_range(0.03, 0.05))
 		await tween.finished
 		# Slower fade down
 		tween = create_tween()
+		tween.set_parallel(true)
 		tween.tween_property(_canvas_modulate, "color", _base_darkness, randf_range(0.08, 0.15))
+		for layer in _parallax_bg.get_children():
+			if layer is ParallaxLayer:
+				tween.tween_property(layer, "modulate", _base_bg_darkness, randf_range(0.08, 0.15))
 		await tween.finished
 		# Brief pause between bursts
 		if i < num_bursts - 1:
