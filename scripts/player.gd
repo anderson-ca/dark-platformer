@@ -650,12 +650,13 @@ func _physics_process(delta: float) -> void:
 				dash_timer = DASH_DURATION
 				dash_cooldown_timer = DASH_COOLDOWN
 				dash_direction = facing
+				is_invincible = true
 				if not is_on_floor():
 					has_air_dash = false
 				velocity.x = dash_direction * DASH_SPEED
 				if not is_on_floor():
 					velocity.y = min(velocity.y, 30.0)
-				print("Dash cancelled attack!")
+				print("Dash cancelled attack! (i-frames active)")
 				move_and_slide()
 				_was_on_floor = is_on_floor()
 				_update_animation()
@@ -710,12 +711,18 @@ func _physics_process(delta: float) -> void:
 		_update_dust(false)
 		return
 
+	# Dash just ended — remove i-frames (unless in hit recovery)
+	if _was_dashing and not _is_taking_hit:
+		is_invincible = false
+
 	# --- Dash input ---
 	if dash_just_pressed and dash_cooldown_timer <= 0.0:
 		if on_floor or has_air_dash:
 			dash_timer = DASH_DURATION
 			dash_cooldown_timer = DASH_COOLDOWN
 			dash_direction = facing
+			is_invincible = true
+			print("Dash i-frames: invincible during dash")
 			if not on_floor:
 				has_air_dash = false
 			velocity.x = dash_direction * DASH_SPEED
