@@ -9,6 +9,7 @@ const ORB_FRAMES := 8
 
 var direction: int = 1
 var hit_enemies: Array = []
+var muzzle_spawn_position: Vector2 = Vector2.ZERO
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
