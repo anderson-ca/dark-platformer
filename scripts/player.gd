@@ -315,6 +315,7 @@ func take_damage(from_position: Vector2) -> void:
 		return
 	if is_shielding:
 		print("Shield BLOCKED attack!")
+		_spawn_shield_block_effect()
 		var ghouls := get_tree().get_nodes_in_group("enemies")
 		for enemy in ghouls:
 			if enemy.has_method("take_knockback"):
@@ -328,6 +329,36 @@ func take_damage(from_position: Vector2) -> void:
 		_play_death()
 	else:
 		_play_hit(from_position)
+
+
+func _spawn_shield_block_effect() -> void:
+	var SB_FRAME_W := 82
+	var SB_FRAME_H := 65
+	var SB_FRAMES := 7
+	var sb_tex := load("res://assets/effects/combat/hit/Blood Hit 1.png") as Texture2D
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	sf.add_animation("shield_block")
+	sf.set_animation_speed("shield_block", 14.0)
+	sf.set_animation_loop("shield_block", false)
+	for i in range(SB_FRAMES):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sb_tex
+		atlas.region = Rect2(i * SB_FRAME_W, 0, SB_FRAME_W, SB_FRAME_H)
+		sf.add_frame("shield_block", atlas)
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = sf
+	sprite.z_index = 10
+	sprite.scale = Vector2(0.3, 0.3)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.global_position = global_position + Vector2(facing * 15, -10)
+	sprite.animation_finished.connect(sprite.queue_free)
+	get_parent().add_child(sprite)
+	sprite.play("shield_block")
+	print("Shield block effect: ", SB_FRAMES, " frames of ", SB_FRAME_W, "x", SB_FRAME_H, " @ 14 FPS, scale=0.3")
 
 
 func _spawn_blood_effect() -> void:
