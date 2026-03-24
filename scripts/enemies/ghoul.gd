@@ -30,6 +30,8 @@ var _player: CharacterBody2D = null
 var _has_dealt_damage: bool = false
 var _shield_blocked_timer: float = 0.0
 const SHIELD_BACK_OFF_TIME := 1.5
+var is_stunned: bool = false
+var stun_timer: float = 0.0
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
@@ -107,6 +109,16 @@ func _physics_process(delta: float) -> void:
 	# Tick cooldowns
 	attack_cooldown_timer = max(attack_cooldown_timer - delta, 0.0)
 	_shield_blocked_timer = max(_shield_blocked_timer - delta, 0.0)
+
+	# Stun overrides everything — no movement or attacks
+	if is_stunned:
+		stun_timer -= delta
+		velocity.x = move_toward(velocity.x, 0.0, 200.0 * delta)
+		if stun_timer <= 0.0:
+			is_stunned = false
+			_enter_state(State.IDLE)
+		move_and_slide()
+		return
 
 	match state:
 		State.IDLE:
@@ -300,6 +312,17 @@ func apply_repel(dir: float, force: float) -> void:
 	if sign(velocity.x) != sign(dir):
 		velocity.x = 0.0
 	velocity.x = move_toward(velocity.x, dir * force, force)
+
+
+func apply_stun(duration: float) -> void:
+	if state == State.DEATH:
+		return
+	is_stunned = true
+	stun_timer = duration
+	attack_count = 0
+	attack_cooldown_timer = 0.0
+	animated_sprite.play("hit")
+	print("Ghoul STUNNED for ", duration, "s")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:

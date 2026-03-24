@@ -69,9 +69,10 @@ var is_invincible: bool = false
 var _is_taking_hit: bool = false
 var shockwave_cooldown_timer: float = 0.0
 const SHOCKWAVE_COOLDOWN := 2.0
-const SHOCKWAVE_RADIUS := 90.0
-const SHOCKWAVE_KNOCKBACK := 100.0
+const SHOCKWAVE_RADIUS := 150.0
+const SHOCKWAVE_KNOCKBACK := 250.0
 const SHOCKWAVE_DAMAGE := 2
+const SHOCKWAVE_STUN := 0.5
 const MAX_HEALTH := 3
 var current_health: int = MAX_HEALTH
 
@@ -260,13 +261,16 @@ func _apply_shockwave_effect() -> void:
 			var kb_dir: float = sign(enemy.global_position.x - global_position.x)
 			if kb_dir == 0.0:
 				kb_dir = facing
-			enemy.velocity.x = kb_dir * SHOCKWAVE_KNOCKBACK
-			enemy.velocity.y = -50.0
 			# Deal 2 hits of damage
 			if enemy.has_method("take_damage"):
 				for i in range(SHOCKWAVE_DAMAGE):
 					enemy.take_damage(global_position)
-	print("Shockwave: radius=", SHOCKWAVE_RADIUS, "px knockback=", SHOCKWAVE_KNOCKBACK, " damage=", SHOCKWAVE_DAMAGE, " hit=", hit_count, " enemies")
+			# Knockback + stun AFTER damage (stun overrides HIT state)
+			enemy.velocity.x = kb_dir * SHOCKWAVE_KNOCKBACK
+			enemy.velocity.y = -120.0
+			if enemy.has_method("apply_stun"):
+				enemy.apply_stun(SHOCKWAVE_STUN)
+	print("Shockwave: radius=", SHOCKWAVE_RADIUS, "px knockback=", SHOCKWAVE_KNOCKBACK, " stun=", SHOCKWAVE_STUN, "s damage=", SHOCKWAVE_DAMAGE, " hit=", hit_count, " enemies")
 
 
 func _on_attack_hit_enemy(area: Area2D) -> void:
@@ -478,6 +482,7 @@ func _on_animation_finished() -> void:
 		_shield_phase = ""
 	elif animated_sprite.animation == "shockwave":
 		is_shockwaving = false
+		is_invincible = false
 
 
 func reset_abilities() -> void:
@@ -562,6 +567,7 @@ func _physics_process(delta: float) -> void:
 	if shockwave_just_pressed and is_on_floor() and not is_shockwaving and shockwave_cooldown_timer <= 0.0:
 		is_shockwaving = true
 		_shockwave_applied = false
+		is_invincible = true
 		is_attacking = false
 		is_shielding = false
 		_shield_phase = ""
