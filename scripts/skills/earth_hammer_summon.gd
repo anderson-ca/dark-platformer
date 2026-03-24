@@ -17,3 +17,7 @@ func _init() -> void:
 
 	# Spawn in front of player
 	spawn_offset = Vector2(40, -10)
+
+	# Hitbox only active during slam
+	hitbox_start_frame = 8
+	hitbox_end_frame = 12

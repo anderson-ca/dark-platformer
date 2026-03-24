@@ -16,6 +16,11 @@ var knockback_force: float = 200.0
 # Spawn offset from player
 var spawn_offset: Vector2 = Vector2(50, 0)
 
+# Hitbox active frames (override in children)
+var hitbox_start_frame: int = 0
+var hitbox_end_frame: int = 999
+var _hitbox_enabled: bool = false
+
 # Runtime
 var direction: int = 1
 var hit_enemies: Array = []
@@ -33,9 +38,24 @@ func _ready() -> void:
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
 	if hitbox:
+		hitbox.monitoring = false
 		hitbox.area_entered.connect(_on_hitbox_area_entered)
 
 	print(summon_name, " summoned, direction: ", direction)
+
+
+func _process(_delta: float) -> void:
+	if animated_sprite and hitbox:
+		var current_frame: int = animated_sprite.frame
+		if current_frame >= hitbox_start_frame and current_frame <= hitbox_end_frame:
+			if not _hitbox_enabled:
+				hitbox.monitoring = true
+				_hitbox_enabled = true
+				print(summon_name, " hitbox ACTIVE frame ", current_frame)
+		else:
+			if _hitbox_enabled:
+				hitbox.monitoring = false
+				_hitbox_enabled = false
 
 
 func _setup_animation() -> void:
