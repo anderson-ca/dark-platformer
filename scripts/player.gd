@@ -640,6 +640,27 @@ func _physics_process(delta: float) -> void:
 			_attack_hitbox.monitoring = false  # enabled on impact frames
 
 	if is_attacking:
+		# Dash cancel — interrupt attack with dash
+		if dash_just_pressed and dash_cooldown_timer <= 0.0:
+			if is_on_floor() or has_air_dash:
+				is_attacking = false
+				_combo_stage = 0
+				_combo_window = false
+				_attack_hitbox.monitoring = false
+				dash_timer = DASH_DURATION
+				dash_cooldown_timer = DASH_COOLDOWN
+				dash_direction = facing
+				if not is_on_floor():
+					has_air_dash = false
+				velocity.x = dash_direction * DASH_SPEED
+				if not is_on_floor():
+					velocity.y = min(velocity.y, 30.0)
+				print("Dash cancelled attack!")
+				move_and_slide()
+				_was_on_floor = is_on_floor()
+				_update_animation()
+				_update_dust(false)
+				return
 		# Frame-synced hitbox: only active during orb impact frames
 		var f := animated_sprite.frame
 		if _combo_stage == 1:
