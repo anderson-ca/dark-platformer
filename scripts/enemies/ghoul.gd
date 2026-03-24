@@ -176,11 +176,6 @@ func _chase_player(_delta: float) -> void:
 	_face_player()
 	var dist := global_position.distance_to(_player.global_position)
 
-	# If player is shielding and we're close, just stop — don't retreat
-	if _player.is_shielding and dist < ATTACK_RANGE * 2.0:
-		velocity.x = 0.0
-		return
-
 	# Can attack if in range AND cooldown is done
 	if dist < ATTACK_RANGE and attack_cooldown_timer <= 0.0:
 		_enter_state(State.ATTACK)
