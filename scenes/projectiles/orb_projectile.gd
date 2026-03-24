@@ -35,32 +35,18 @@ func _ready() -> void:
 	animated_sprite.sprite_frames = sf
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	animated_sprite.modulate = Color(0.8, 0.5, 1.0, 1.0)
 	animated_sprite.play("burst")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
-	# Purple outline shader
-	var shader := load("res://shaders/purple_outline.gdshader")
-	var shader_mat := ShaderMaterial.new()
-	shader_mat.shader = shader
-	shader_mat.set_shader_parameter("outline_color", Color(0.6, 0.2, 1.0, 1.0))
-	shader_mat.set_shader_parameter("outline_width", 1.5)
-	animated_sprite.material = shader_mat
-
-	# Generate light texture
-	glow_light.texture = _make_light_texture()
-
-	# Pulse the glow
-	var tween := create_tween().set_loops()
-	tween.tween_property(glow_light, "energy", 5.5, 0.15)
-	tween.tween_property(glow_light, "energy", 3.5, 0.15)
-
-	# Brighten environment while orb is active
-	_brighten_environment(true)
+	# Purple PointLight — illuminates environment like a purple light bulb
+	if glow_light:
+		glow_light.texture = _make_light_texture()
+		glow_light.color = Color(0.7, 0.2, 1.0, 1.0)
+		glow_light.energy = 2.2
+		glow_light.texture_scale = 1.5
 
 	area_entered.connect(_on_area_entered)
-	tree_exiting.connect(_on_tree_exiting)
-	print("Orb glow and outline initialized, direction: ", direction)
+	print("Orb purple light initialized, direction: ", direction)
 
 
 func _make_light_texture() -> ImageTexture:
@@ -91,22 +77,6 @@ func _on_area_entered(area: Area2D) -> void:
 			enemy.take_damage(global_position)
 		print("Orb hit enemy: ", enemy.name)
 
-
-func _brighten_environment(brighten: bool) -> void:
-	var cm_nodes: Array[Node] = get_tree().get_nodes_in_group("canvas_modulate")
-	if cm_nodes.size() == 0:
-		return
-	var cm: CanvasModulate = cm_nodes[0]
-	if brighten:
-		var tween := cm.create_tween()
-		tween.tween_property(cm, "color", Color(0.22, 0.18, 0.25), 0.1)
-	else:
-		var tween := cm.create_tween()
-		tween.tween_property(cm, "color", Color(0.15, 0.15, 0.18), 0.3)
-
-
-func _on_tree_exiting() -> void:
-	_brighten_environment(false)
 
 
 func _on_animation_finished() -> void:

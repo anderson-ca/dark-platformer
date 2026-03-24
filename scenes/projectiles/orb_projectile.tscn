@@ -20,8 +20,8 @@ z_index = 5
 shape = SubResource("CircleShape2D_orb")
 
 [node name="GlowLight" type="PointLight2D" parent="."]
-color = Color(0.7, 0.3, 1, 1)
-energy = 4.0
-texture_scale = 3.0
+color = Color(0.7, 0.2, 1, 1)
+energy = 2.2
+texture_scale = 1.5
 shadow_enabled = false
 blend_mode = 1
