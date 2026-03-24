@@ -42,6 +42,11 @@ func _ready() -> void:
 
 	player.hit_hazard.connect(_on_hazard)
 
+	# Darken parallax background separately for moodier atmosphere
+	var parallax_bg := $ParallaxBackground
+	parallax_bg.modulate = Color(0.5, 0.5, 0.55, 1.0)
+	print("ParallaxBackground modulate: ", parallax_bg.modulate)
+
 	# Dark atmosphere — darken everything, player/campfire lights punch through
 	var canvas_mod := CanvasModulate.new()
 	canvas_mod.name = "DarkAtmosphere"
