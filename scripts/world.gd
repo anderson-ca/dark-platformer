@@ -413,10 +413,10 @@ func _process(delta: float) -> void:
 func _do_lightning_flash() -> void:
 	var num_bursts := randi_range(2, 3)
 	for i in num_bursts:
-		var intensity := randf_range(0.4, 0.8)
+		var intensity := randf_range(0.6, 0.85)
 		if i == 0:
-			intensity = randf_range(0.6, 0.9)
-		var flash_color := Color(intensity, intensity, intensity + 0.05, 1.0)
+			intensity = randf_range(0.85, 1.0)
+		var flash_color := Color(intensity, intensity, intensity + 0.1, 1.0)
 		# Quick flash up
 		var tween := create_tween()
 		tween.tween_property(_canvas_modulate, "color", flash_color, randf_range(0.03, 0.05))
@@ -428,7 +428,7 @@ func _do_lightning_flash() -> void:
 		# Brief pause between bursts
 		if i < num_bursts - 1:
 			await get_tree().create_timer(randf_range(0.05, 0.1)).timeout
-	print("Lightning: ", num_bursts, " bursts")
+	print("Lightning flash - peak intensity: ", num_bursts, " bursts")
 
 
 func _on_hazard() -> void:
