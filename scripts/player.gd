@@ -365,9 +365,9 @@ func _spawn_shield_block_effect() -> void:
 
 func _spawn_double_jump_burst() -> void:
 	var offsets := [
-		Vector2(-15, 10),
+		Vector2(0, 5),
 		Vector2(0, 15),
-		Vector2(15, 10)
+		Vector2(0, 25)
 	]
 	for offset in offsets:
 		var ghost := animated_sprite.duplicate() as AnimatedSprite2D
@@ -380,7 +380,7 @@ func _spawn_double_jump_burst() -> void:
 		ghost.modulate = Color(0.8, 0.3, 1.0, 0.5)
 		var tween := create_tween()
 		tween.set_parallel(true)
-		tween.tween_property(ghost, "global_position", ghost.global_position + Vector2(offset.x * 0.5, 20), 0.25)
+		tween.tween_property(ghost, "global_position", ghost.global_position + Vector2(0, 15), 0.25)
 		tween.tween_property(ghost, "modulate:a", 0.0, 0.25)
 		tween.set_parallel(false)
 		tween.tween_callback(ghost.queue_free)
