@@ -377,7 +377,7 @@ func _spawn_double_jump_burst() -> void:
 		ghost.frame = animated_sprite.frame
 		ghost.flip_h = animated_sprite.flip_h
 		ghost.pause()
-		ghost.modulate = Color(0.5, 0.5, 1.0, 0.5)
+		ghost.modulate = Color(0.8, 0.3, 1.0, 0.5)
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(ghost, "global_position", ghost.global_position + Vector2(offset.x * 0.5, 20), 0.25)
@@ -394,7 +394,7 @@ func _spawn_dash_ghost() -> void:
 	ghost.frame = animated_sprite.frame
 	ghost.flip_h = animated_sprite.flip_h
 	ghost.pause()
-	ghost.modulate = Color(0.5, 0.5, 1.0, 0.6)
+	ghost.modulate = Color(0.8, 0.3, 1.0, 0.7)
 	var tween := create_tween()
 	tween.tween_property(ghost, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(ghost.queue_free)
@@ -788,6 +788,7 @@ func _physics_process(delta: float) -> void:
 				velocity.x = dash_direction * DASH_SPEED
 				if not is_on_floor():
 					velocity.y = min(velocity.y, 30.0)
+				animated_sprite.modulate = Color(0.9, 0.6, 1.0, 1.0)
 				print("Dash cancelled attack! (i-frames active)")
 				move_and_slide()
 				_was_on_floor = is_on_floor()
@@ -847,9 +848,10 @@ func _physics_process(delta: float) -> void:
 		_update_dust(false)
 		return
 
-	# Dash just ended — remove i-frames (unless in hit recovery)
+	# Dash just ended — remove i-frames and purple tint (unless in hit recovery)
 	if _was_dashing and not _is_taking_hit:
 		is_invincible = false
+		animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 	# --- Dash input ---
 	if dash_just_pressed and dash_cooldown_timer <= 0.0:
@@ -859,7 +861,8 @@ func _physics_process(delta: float) -> void:
 			dash_direction = facing
 			is_invincible = true
 			_dash_ghost_timer = 0.0
-			print("Dash i-frames: invincible during dash")
+			animated_sprite.modulate = Color(0.9, 0.6, 1.0, 1.0)
+			print("Dash started - purple tint applied")
 			if not on_floor:
 				has_air_dash = false
 			velocity.x = dash_direction * DASH_SPEED
