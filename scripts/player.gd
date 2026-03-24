@@ -628,7 +628,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			animated_sprite.play("attack")
 			_attack_hitbox.scale.x = facing
-			_attack_hitbox.monitoring = true
+			_attack_hitbox.monitoring = false  # enabled on impact frames
 		elif not is_attacking and _combo_stage == 0:
 			# Single tap: quick attack (first orb only)
 			is_attacking = true
@@ -637,9 +637,17 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			animated_sprite.play("attack1")
 			_attack_hitbox.scale.x = facing
-			_attack_hitbox.monitoring = true
+			_attack_hitbox.monitoring = false  # enabled on impact frames
 
 	if is_attacking:
+		# Frame-synced hitbox: only active during orb impact frames
+		var f := animated_sprite.frame
+		if _combo_stage == 1:
+			# attack1 (8 frames): impact at frames 4-6
+			_attack_hitbox.monitoring = (f >= 4 and f <= 6)
+		elif _combo_stage == 2:
+			# full attack (16 frames): first orb 4-6, second orb 12-14
+			_attack_hitbox.monitoring = (f >= 4 and f <= 6) or (f >= 12 and f <= 14)
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta
