@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxwesrs16ny4s"
-path="res://.godot/imported/floor_dash_dust.png-ea3a1d337176181a341b6703a5c1627c.ctex"
+uid="uid://mikcc4glnsb2"
+path="res://.godot/imported/Blood hit 3.png-1565066a2137bf9bf55afb1a1a9bf367.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/movement/floor_dash_dust.png"
-dest_files=["res://.godot/imported/floor_dash_dust.png-ea3a1d337176181a341b6703a5c1627c.ctex"]
+source_file="res://assets/effects/combat/hit/Blood hit 3.png"
+dest_files=["res://.godot/imported/Blood hit 3.png-1565066a2137bf9bf55afb1a1a9bf367.ctex"]
 
 [params]
 

@@ -320,7 +320,7 @@ func _spawn_blood_effect() -> void:
 	var sprite := AnimatedSprite2D.new()
 	sprite.sprite_frames = sf
 	sprite.z_index = 10
-	sprite.scale = Vector2(1.5, 1.5)
+	sprite.scale = Vector2(0.3, 0.3)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.global_position = global_position + Vector2(0, -10)
 	sprite.animation_finished.connect(sprite.queue_free)
