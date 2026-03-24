@@ -55,6 +55,7 @@ func _ready() -> void:
 	_canvas_modulate = CanvasModulate.new()
 	_canvas_modulate.name = "DarkAtmosphere"
 	_canvas_modulate.color = _base_darkness
+	_canvas_modulate.add_to_group("canvas_modulate")
 	add_child(_canvas_modulate)
 	print("CanvasModulate: ", _canvas_modulate.color)
 

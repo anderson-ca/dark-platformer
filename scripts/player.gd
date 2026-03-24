@@ -260,7 +260,7 @@ func _setup_attack_glow() -> void:
 	_attack_glow_light.color = Color(0.6, 0.2, 1.0, 1.0)
 	_attack_glow_light.energy = 0.0
 	_attack_glow_light.texture = light_tex
-	_attack_glow_light.texture_scale = 1.2
+	_attack_glow_light.texture_scale = 4.0
 	_attack_glow_light.position = Vector2(0, -10)
 	_attack_glow_light.shadow_enabled = false
 	_attack_glow_light.blend_mode = Light2D.BLEND_MODE_ADD
@@ -272,10 +272,18 @@ func _flash_attack_glow() -> void:
 	if not _attack_glow_light:
 		return
 	_attack_glow_light.enabled = true
-	_attack_glow_light.energy = 2.5
+	_attack_glow_light.energy = 6.0
 	var tween := create_tween()
 	tween.tween_property(_attack_glow_light, "energy", 0.0, 0.25)
 	tween.tween_callback(func(): _attack_glow_light.enabled = false)
+
+	# Environment flash via CanvasModulate
+	var cm_nodes: Array[Node] = get_tree().get_nodes_in_group("canvas_modulate")
+	if cm_nodes.size() > 0:
+		var cm: CanvasModulate = cm_nodes[0]
+		var env_tween := cm.create_tween()
+		env_tween.tween_property(cm, "color", Color(0.25, 0.2, 0.3), 0.05)
+		env_tween.tween_property(cm, "color", Color(0.15, 0.15, 0.18), 0.3)
 
 
 func _setup_attack_label() -> void:

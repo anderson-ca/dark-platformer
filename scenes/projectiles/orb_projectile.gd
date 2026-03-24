@@ -52,10 +52,14 @@ func _ready() -> void:
 
 	# Pulse the glow
 	var tween := create_tween().set_loops()
-	tween.tween_property(glow_light, "energy", 2.0, 0.15)
-	tween.tween_property(glow_light, "energy", 1.2, 0.15)
+	tween.tween_property(glow_light, "energy", 5.5, 0.15)
+	tween.tween_property(glow_light, "energy", 3.5, 0.15)
+
+	# Brighten environment while orb is active
+	_brighten_environment(true)
 
 	area_entered.connect(_on_area_entered)
+	tree_exiting.connect(_on_tree_exiting)
 	print("Orb glow and outline initialized, direction: ", direction)
 
 
@@ -86,6 +90,23 @@ func _on_area_entered(area: Area2D) -> void:
 		else:
 			enemy.take_damage(global_position)
 		print("Orb hit enemy: ", enemy.name)
+
+
+func _brighten_environment(brighten: bool) -> void:
+	var cm_nodes: Array[Node] = get_tree().get_nodes_in_group("canvas_modulate")
+	if cm_nodes.size() == 0:
+		return
+	var cm: CanvasModulate = cm_nodes[0]
+	if brighten:
+		var tween := cm.create_tween()
+		tween.tween_property(cm, "color", Color(0.22, 0.18, 0.25), 0.1)
+	else:
+		var tween := cm.create_tween()
+		tween.tween_property(cm, "color", Color(0.15, 0.15, 0.18), 0.3)
+
+
+func _on_tree_exiting() -> void:
+	_brighten_environment(false)
 
 
 func _on_animation_finished() -> void:
