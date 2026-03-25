@@ -62,7 +62,7 @@ var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 # Attack switching (debug)
 var available_attacks: Array = ["None", "Dark Orb", "Fire", "Ice", "Void", "Lightning", "Arrow", "Energy"]
 var current_attack_index: int = 1
-var available_summons: Array = ["None", "Earth Hammer"]
+var available_summons: Array = ["None", "Earth Hammer", "Earth Golem"]
 var current_summon_index: int = 1
 var _attack_label: Label
 var is_shielding: bool = false
@@ -507,6 +507,8 @@ func _spawn_summon() -> void:
 	match summon_name:
 		"Earth Hammer":
 			summon_scene = preload("res://scenes/summons/earth_hammer_summon.tscn")
+		"Earth Golem":
+			summon_scene = preload("res://scenes/summons/earth_golem_summon.tscn")
 		_:
 			return
 
