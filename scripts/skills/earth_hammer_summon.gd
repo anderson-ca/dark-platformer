@@ -21,3 +21,6 @@ func _init() -> void:
 	# Hitbox only active during slam
 	hitbox_start_frame = 8
 	hitbox_end_frame = 12
+
+	match_environment_color = true
+	environment_base_color = Color(0.196, 0.184, 0.157)

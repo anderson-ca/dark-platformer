@@ -12,6 +12,9 @@ func _init() -> void:
 	knockback_force = 300.0
 	spawn_offset = Vector2(45, -10)
 
+	match_environment_color = true
+	environment_base_color = Color(0.196, 0.184, 0.157)
+
 
 func _setup_animation() -> void:
 	var base_path := "res://assets/effects/combat/summons/earth_golem/frames/"

@@ -22,6 +22,10 @@ var hitbox_start_frame: int = 0
 var hitbox_end_frame: int = 999
 var _hitbox_enabled: bool = false
 
+# Environment color matching
+var match_environment_color: bool = false
+var environment_base_color: Color = Color(0.196, 0.184, 0.157)  # #322F28
+
 # Runtime
 var direction: int = 1
 var hit_enemies: Array = []
@@ -42,6 +46,9 @@ func _ready() -> void:
 	if hitbox:
 		hitbox.monitoring = false
 		hitbox.area_entered.connect(_on_hitbox_area_entered)
+
+	if match_environment_color:
+		_apply_environment_color_match()
 
 	print(summon_name, " summoned, direction: ", direction)
 
@@ -103,6 +110,33 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			enemy.take_damage(global_position)
 
 		print(summon_name, " hit enemy: ", enemy.name)
+
+
+func _apply_environment_color_match() -> void:
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec3 target_color : source_color = vec3(0.196, 0.184, 0.157);
+uniform float blend_amount : hint_range(0.0, 1.0) = 0.6;
+uniform float darken_amount : hint_range(0.0, 1.0) = 0.4;
+
+void fragment() {
+	vec4 tex_color = texture(TEXTURE, UV);
+	float lum = dot(tex_color.rgb, vec3(0.299, 0.587, 0.114));
+	vec3 desat = vec3(lum) * 0.7 + tex_color.rgb * 0.3;
+	vec3 tinted = mix(desat, target_color * (lum + 0.3), blend_amount);
+	tinted *= (1.0 - darken_amount);
+	COLOR = vec4(tinted, tex_color.a);
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("target_color", Vector3(environment_base_color.r, environment_base_color.g, environment_base_color.b))
+	mat.set_shader_parameter("blend_amount", 0.65)
+	mat.set_shader_parameter("darken_amount", 0.4)
+	animated_sprite.material = mat
+	print(summon_name, ": Applied environment color match -> ", environment_base_color)
 
 
 func _on_animation_finished() -> void:
