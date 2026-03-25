@@ -10,7 +10,7 @@ func _init() -> void:
 
 	damage = 4
 	knockback_force = 200.0
-	spawn_offset = Vector2(60, -20)
+	spawn_offset = Vector2(60, -28)
 
 	hitbox_start_frame = 2
 	hitbox_end_frame = 8
@@ -24,7 +24,9 @@ func _init() -> void:
 
 func _ready() -> void:
 	super._ready()
-	scale = Vector2(2.0, 6.0)
+	scale = Vector2(2.0, 10.0)
+	animated_sprite.centered = false
+	animated_sprite.offset = Vector2(-16, -32)  # Half width left, full height up (32x32)
 
 
 func _setup_animation() -> void:
