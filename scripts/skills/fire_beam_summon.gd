@@ -39,6 +39,10 @@ func _setup_animation():
 	animated_sprite.sprite_frames = sf
 	frame_count = 10
 
-	scale = Vector2(2.0, 2.0)
+	# Scale only the sprite, not the node (avoids scaling hitbox)
+	animated_sprite.scale = Vector2(2.0, 12.0)
+	animated_sprite.centered = true
+	# Anchor bottom at ground: shift up by half the scaled height (48 * 12 / 2 = 288)
+	animated_sprite.position.y = -288
 
 	print("Fire Beam: ", frame_count, " frames loaded")
