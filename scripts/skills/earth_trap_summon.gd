@@ -1,9 +1,6 @@
 class_name EarthTrapSummon
 extends BaseSummon
 
-var exit_start_frame: int = 0
-var rise_frame_count: int = 6
-
 func _init() -> void:
 	summon_name = "Earth Trap"
 	texture_path = ""
@@ -15,8 +12,9 @@ func _init() -> void:
 	knockback_force = 200.0
 	spawn_offset = Vector2(80, -20)
 
-	hitbox_start_frame = 8
-	hitbox_end_frame = 16
+	# Hitbox active during hold/attack phase (frames 7-10, index 6-9)
+	hitbox_start_frame = 6
+	hitbox_end_frame = 9
 
 
 func _ready() -> void:
@@ -47,18 +45,23 @@ func _setup_animation() -> void:
 		push_error("No Earth Trap frames loaded!")
 		return
 
-	# Part 1: all 16 frames (rise + attack + partial exit)
-	for tex in textures:
-		sf.add_frame("summon", tex)
+	var rise_frames := 6   # Frames 1-6: rising
+	var hold_frames := 4   # Frames 7-10: full wall/attack
 
-	# Part 2: reversed rise frames for sink-into-ground exit
-	for i in range(rise_frame_count - 1, -1, -1):
+	# Part 1: rise from ground (frames 1-6)
+	for i in range(rise_frames):
+		sf.add_frame("summon", textures[i])
+
+	# Part 2: hold/attack (frames 7-10)
+	for i in range(rise_frames, rise_frames + hold_frames):
+		sf.add_frame("summon", textures[i])
+
+	# Part 3: sink into ground (reversed rise, skip ugly symmetrical fade)
+	for i in range(rise_frames - 1, -1, -1):
 		sf.add_frame("summon", textures[i])
 
 	animated_sprite.sprite_frames = sf
-	frame_count = textures.size() + rise_frame_count  # 22
-	exit_start_frame = textures.size()  # 16
+	frame_count = rise_frames + hold_frames + rise_frames  # 16
 
-	print("Earth Trap: ", frame_count, " frames total")
-	print("  - Frames 1-16: original animation")
-	print("  - Frames 17-22: reversed rise (sink into ground)")
+	print("Earth Trap: ", frame_count, " frames")
+	print("  - 1-6: rise | 7-10: attack | 11-16: sink (reversed rise)")
