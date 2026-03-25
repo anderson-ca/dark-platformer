@@ -43,8 +43,8 @@ func _setup_animation():
 	var light = PointLight2D.new()
 	light.name = "FireGlow"
 	light.color = Color(1.0, 0.6, 0.2)
-	light.energy = 2.5
-	light.texture_scale = 3.0
+	light.energy = 4.0
+	light.texture_scale = 5.0
 	light.position = Vector2(0, -150)
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 
@@ -65,7 +65,7 @@ func _setup_animation():
 
 	# Pulse the light for flickering fire effect
 	var tween = create_tween().set_loops()
+	tween.tween_property(light, "energy", 5.5, 0.1)
 	tween.tween_property(light, "energy", 3.0, 0.1)
-	tween.tween_property(light, "energy", 2.0, 0.1)
-	tween.tween_property(light, "energy", 2.8, 0.08)
-	tween.tween_property(light, "energy", 2.2, 0.12)
+	tween.tween_property(light, "energy", 5.0, 0.08)
+	tween.tween_property(light, "energy", 3.5, 0.12)
