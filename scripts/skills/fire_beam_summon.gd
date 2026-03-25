@@ -17,7 +17,7 @@ func _init() -> void:
 
 	match_environment_color = false
 
-	magical_aura_enabled = true
+	magical_aura_enabled = false
 	aura_color = Color(1.0, 0.4, 0.1, 1.0)  # #FF6619
 	ghost_interval = 0.04
 

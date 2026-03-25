@@ -251,8 +251,8 @@ func _spawn_summon_ghost() -> void:
 
 	get_parent().add_child(ghost)
 
-	var tween := create_tween()
-	tween.tween_property(ghost, "modulate:a", 0.0, 0.25)
+	var tween := ghost.create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(ghost.queue_free)
 
 
