@@ -75,12 +75,18 @@ func _process(delta: float) -> void:
 				hitbox.monitoring = false
 				_hitbox_enabled = false
 
+	# Keep outline in sync with main sprite
+	var outline := get_node_or_null("AuraOutline") as AnimatedSprite2D
+	if outline and animated_sprite:
+		outline.frame = animated_sprite.frame
+
 	# Ghost trails
 	if magical_aura_enabled and animated_sprite:
-		_ghost_timer += delta
-		if _ghost_timer >= ghost_interval:
-			_ghost_timer = 0.0
-			_spawn_summon_ghost()
+		if animated_sprite.frame < frame_count - 2:
+			_ghost_timer += delta
+			if _ghost_timer >= ghost_interval:
+				_ghost_timer = 0.0
+				_spawn_summon_ghost()
 
 
 func _setup_animation() -> void:
@@ -166,6 +172,10 @@ func _add_outline_sprite() -> void:
 	outline.sprite_frames = animated_sprite.sprite_frames
 	outline.flip_h = animated_sprite.flip_h
 	outline.z_index = -1
+	outline.centered = animated_sprite.centered
+	outline.offset = animated_sprite.offset
+	outline.position = animated_sprite.position
+	outline.scale = animated_sprite.scale
 
 	var shader := Shader.new()
 	shader.code = """
