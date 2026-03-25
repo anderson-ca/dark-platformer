@@ -15,6 +15,10 @@ func _init() -> void:
 	match_environment_color = true
 	environment_base_color = Color(0.196, 0.184, 0.157)
 
+	magical_aura_enabled = true
+	aura_color = Color(0.7, 0.2, 1.0, 1.0)
+	ghost_interval = 0.05
+
 
 func _setup_animation() -> void:
 	var base_path := "res://assets/effects/combat/summons/earth_golem/frames/"

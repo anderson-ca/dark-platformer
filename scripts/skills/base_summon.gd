@@ -26,6 +26,12 @@ var _hitbox_enabled: bool = false
 var match_environment_color: bool = false
 var environment_base_color: Color = Color(0.196, 0.184, 0.157)  # #322F28
 
+# Magical aura
+var magical_aura_enabled: bool = false
+var aura_color: Color = Color(0.7, 0.2, 1.0, 1.0)
+var ghost_interval: float = 0.05
+var _ghost_timer: float = 0.0
+
 # Runtime
 var direction: int = 1
 var hit_enemies: Array = []
@@ -50,10 +56,13 @@ func _ready() -> void:
 	if match_environment_color:
 		_apply_environment_color_match()
 
+	if magical_aura_enabled:
+		_apply_magical_aura()
+
 	print(summon_name, " summoned, direction: ", direction)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if animated_sprite and hitbox:
 		var current_frame: int = animated_sprite.frame
 		if current_frame >= hitbox_start_frame and current_frame <= hitbox_end_frame:
@@ -65,6 +74,13 @@ func _process(_delta: float) -> void:
 			if _hitbox_enabled:
 				hitbox.monitoring = false
 				_hitbox_enabled = false
+
+	# Ghost trails
+	if magical_aura_enabled and animated_sprite:
+		_ghost_timer += delta
+		if _ghost_timer >= ghost_interval:
+			_ghost_timer = 0.0
+			_spawn_summon_ghost()
 
 
 func _setup_animation() -> void:
@@ -137,6 +153,93 @@ void fragment() {
 	mat.set_shader_parameter("darken_amount", 0.4)
 	animated_sprite.material = mat
 	print(summon_name, ": Applied environment color match -> ", environment_base_color)
+
+
+func _apply_magical_aura() -> void:
+	_add_outline_sprite()
+	print(summon_name, ": Magical aura enabled, color=", aura_color)
+
+
+func _add_outline_sprite() -> void:
+	var outline := AnimatedSprite2D.new()
+	outline.name = "AuraOutline"
+	outline.sprite_frames = animated_sprite.sprite_frames
+	outline.flip_h = animated_sprite.flip_h
+	outline.z_index = -1
+
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec4 outline_color : source_color = vec4(0.7, 0.2, 1.0, 1.0);
+uniform float outline_width : hint_range(0.0, 10.0) = 2.0;
+uniform float pulse : hint_range(0.0, 1.0) = 1.0;
+
+void fragment() {
+	vec2 size = TEXTURE_PIXEL_SIZE * outline_width;
+	float outline = 0.0;
+
+	outline += texture(TEXTURE, UV + vec2(-size.x, 0)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, 0)).a;
+	outline += texture(TEXTURE, UV + vec2(0, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(0, size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(-size.x, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(-size.x, size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, size.y)).a;
+
+	outline = min(outline, 1.0);
+
+	vec4 tex_color = texture(TEXTURE, UV);
+	float outline_mask = outline * (1.0 - tex_color.a);
+
+	vec4 glow = outline_color * outline_mask * pulse;
+	glow.a *= 0.8;
+
+	COLOR = glow;
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("outline_color", aura_color)
+	mat.set_shader_parameter("outline_width", 2.0)
+	outline.material = mat
+
+	add_child(outline)
+	outline.play("summon")
+
+	# Pulse the outline
+	var tween := create_tween().set_loops()
+	tween.tween_method(func(val: float) -> void:
+		if is_instance_valid(outline) and outline.material:
+			outline.material.set_shader_parameter("pulse", val)
+	, 0.5, 1.0, 0.3)
+	tween.tween_method(func(val: float) -> void:
+		if is_instance_valid(outline) and outline.material:
+			outline.material.set_shader_parameter("pulse", val)
+	, 1.0, 0.5, 0.3)
+
+
+func _spawn_summon_ghost() -> void:
+	if not animated_sprite or not animated_sprite.sprite_frames:
+		return
+
+	var ghost := AnimatedSprite2D.new()
+	ghost.sprite_frames = animated_sprite.sprite_frames
+	ghost.animation = "summon"
+	ghost.frame = animated_sprite.frame
+	ghost.global_position = global_position
+	ghost.scale = scale
+	ghost.flip_h = animated_sprite.flip_h
+	ghost.z_index = z_index - 1
+	ghost.pause()
+	ghost.modulate = Color(aura_color.r, aura_color.g, aura_color.b, 0.5)
+
+	get_parent().add_child(ghost)
+
+	var tween := create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.25)
+	tween.tween_callback(ghost.queue_free)
 
 
 func _on_animation_finished() -> void:
