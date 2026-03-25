@@ -202,7 +202,7 @@ void fragment() {
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("outline_color", aura_color)
-	mat.set_shader_parameter("outline_width", 2.0)
+	mat.set_shader_parameter("outline_width", 1.2)
 	outline.material = mat
 
 	add_child(outline)
@@ -224,6 +224,10 @@ func _spawn_summon_ghost() -> void:
 	if not animated_sprite or not animated_sprite.sprite_frames:
 		return
 
+	# Don't spawn ghosts on the last few frames
+	if animated_sprite.frame >= frame_count - 2:
+		return
+
 	var ghost := AnimatedSprite2D.new()
 	ghost.sprite_frames = animated_sprite.sprite_frames
 	ghost.animation = "summon"
@@ -243,4 +247,8 @@ func _spawn_summon_ghost() -> void:
 
 
 func _on_animation_finished() -> void:
+	magical_aura_enabled = false
+	var outline := get_node_or_null("AuraOutline")
+	if outline:
+		outline.queue_free()
 	queue_free()
