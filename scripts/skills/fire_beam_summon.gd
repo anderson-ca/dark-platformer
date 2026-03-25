@@ -1,11 +1,11 @@
 class_name FireBeamSummon
 extends BaseSummon
 
-func _init() -> void:
+func _init():
 	summon_name = "Fire Beam"
 	texture_path = ""
 
-	frame_size = Vector2(32, 32)
+	frame_size = Vector2(48, 48)
 	animation_speed = 12.0
 
 	damage = 4
@@ -16,48 +16,29 @@ func _init() -> void:
 	hitbox_end_frame = 8
 
 	match_environment_color = false
-
 	magical_aura_enabled = false
-	aura_color = Color(1.0, 0.4, 0.1, 1.0)  # #FF6619
 	ghost_interval = 0.04
 
 
-func _ready() -> void:
-	super._ready()
-	scale = Vector2(2.0, 10.0)
-	animated_sprite.centered = true
-	animated_sprite.offset = Vector2.ZERO
-	animated_sprite.position.y = -240  # Shift sprite UP so bottom is at y=0
-
-
-func _setup_animation() -> void:
+func _setup_animation():
 	# Note: double space in folder name
-	var base_path := "res://assets/effects/combat/summons/Fire beam  Separated Frames/"
+	var base_path = "res://assets/effects/combat/summons/Fire beam  Separated Frames/"
 
-	var sf := SpriteFrames.new()
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
+	var sf = SpriteFrames.new()
 	sf.add_animation("summon")
 	sf.set_animation_speed("summon", animation_speed)
 	sf.set_animation_loop("summon", false)
 
-	var textures: Array[Texture2D] = []
-
 	for i in range(1, 11):
-		var texture := load(base_path + "Fire Beam" + str(i) + ".png") as Texture2D
+		var texture = load(base_path + "Fire Beam" + str(i) + ".png")
 		if texture:
-			textures.append(texture)
+			sf.add_frame("summon", texture)
 		else:
 			push_error("Could not load: Fire Beam" + str(i) + ".png")
 
-	if textures.size() == 0:
-		push_error("No Fire Beam frames loaded!")
-		return
-
-	for tex in textures:
-		sf.add_frame("summon", tex)
-
 	animated_sprite.sprite_frames = sf
-	frame_count = textures.size()
+	frame_count = 10
 
-	print("Fire Beam: ", frame_count, " frames @ ", animation_speed, " FPS")
+	scale = Vector2(2.0, 2.0)
+
+	print("Fire Beam: ", frame_count, " frames loaded")
