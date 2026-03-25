@@ -14,7 +14,7 @@ func _init() -> void:
 
 
 func _setup_animation() -> void:
-	var base_path := "res://scenes/summons/Earth Golem Separeted Frames/"
+	var base_path := "res://assets/effects/combat/summons/earth_golem/frames/"
 
 	var sf := SpriteFrames.new()
 	if sf.has_animation("default"):
@@ -25,12 +25,10 @@ func _setup_animation() -> void:
 
 	var total_frames := 0
 
-	# 1. CASTING (appear)
-	var casting_path := base_path + "Casting/"
-	var casting_prefix := _find_prefix(casting_path, ["Earth GolemCasting", "Earth GolemCast", "EarthGolemCasting"])
-	var casting_count := _count_frames(casting_path, casting_prefix)
-	for i in range(1, casting_count + 1):
-		var texture := load(casting_path + casting_prefix + str(i) + ".png") as Texture2D
+	# 1. CASTING (appear) — 12 frames
+	var casting_path := base_path + "casting/"
+	for i in range(1, 13):
+		var texture := load(casting_path + "casting_%02d.png" % i) as Texture2D
 		if texture:
 			sf.add_frame("summon", texture)
 			total_frames += 1
@@ -38,22 +36,18 @@ func _setup_animation() -> void:
 	# Track where attack starts for hitbox timing
 	var attack_start_frame := total_frames
 
-	# 2. ATTACK 1
-	var attack_path := base_path + "Attack 1/"
-	var attack_prefix := _find_prefix(attack_path, ["Earth GolemAttacking", "Earth GolemAttack", "EarthGolemAttacking"])
-	var attack_count := _count_frames(attack_path, attack_prefix)
-	for i in range(1, attack_count + 1):
-		var texture := load(attack_path + attack_prefix + str(i) + ".png") as Texture2D
+	# 2. ATTACK — 11 frames
+	var attack_path := base_path + "attack/"
+	for i in range(1, 12):
+		var texture := load(attack_path + "attack_%02d.png" % i) as Texture2D
 		if texture:
 			sf.add_frame("summon", texture)
 			total_frames += 1
 
-	# 3. DEATH (disappear)
-	var death_path := base_path + "Death/"
-	var death_prefix := _find_prefix(death_path, ["Earth GolemDeath", "Earth GolemDying", "EarthGolemDeath"])
-	var death_count := _count_frames(death_path, death_prefix)
-	for i in range(1, death_count + 1):
-		var texture := load(death_path + death_prefix + str(i) + ".png") as Texture2D
+	# 3. DEATH (disappear) — 14 frames
+	var death_path := base_path + "death/"
+	for i in range(1, 15):
+		var texture := load(death_path + "death_%02d.png" % i) as Texture2D
 		if texture:
 			sf.add_frame("summon", texture)
 			total_frames += 1
@@ -67,23 +61,4 @@ func _setup_animation() -> void:
 
 	print("=== EARTH GOLEM SUMMARY ===")
 	print("Total frames: ", total_frames)
-	print("Casting: ", casting_count, " (", casting_prefix, ") | Attack: ", attack_count, " (", attack_prefix, ") | Death: ", death_count, " (", death_prefix, ")")
 	print("Hitbox active frames: ", hitbox_start_frame, "-", hitbox_end_frame)
-
-
-func _find_prefix(folder_path: String, candidates: Array) -> String:
-	for prefix in candidates:
-		if ResourceLoader.exists(folder_path + prefix + "1.png"):
-			return prefix
-	push_error("No frames found in: " + folder_path)
-	return candidates[0]
-
-
-func _count_frames(folder_path: String, prefix: String) -> int:
-	var count := 0
-	for i in range(1, 50):
-		if ResourceLoader.exists(folder_path + prefix + str(i) + ".png"):
-			count += 1
-		else:
-			break
-	return count

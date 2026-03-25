@@ -3,7 +3,7 @@ extends BaseSummon
 
 func _init() -> void:
 	summon_name = "Earth Hammer"
-	texture_path = "res://assets/effects/combat/summons/Earth Hammer/Earth Hammer Separeted Frames/Earth Hammer (48x48).png"
+	texture_path = "res://assets/effects/combat/summons/earth_hammer/spritesheet/earth_hammer_48x48.png"
 
 	# 240x240 sprite sheet: 5 cols x 5 rows of 48x48, 21 frames used
 	frame_count = 21
