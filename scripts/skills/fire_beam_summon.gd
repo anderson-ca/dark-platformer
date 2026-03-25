@@ -38,3 +38,34 @@ func _setup_animation():
 	animated_sprite.scale = Vector2(2.0, 12.0)
 	# Sprite is 32px * 12 = 384px tall. Move it up by that amount so bottom sits at y=0
 	animated_sprite.position.y = -384
+
+	# Add fire glow light
+	var light = PointLight2D.new()
+	light.name = "FireGlow"
+	light.color = Color(1.0, 0.6, 0.2)
+	light.energy = 2.5
+	light.texture_scale = 3.0
+	light.position = Vector2(0, -150)
+	light.blend_mode = Light2D.BLEND_MODE_ADD
+
+	# Create radial gradient texture for light
+	var size = 128
+	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center = Vector2(size / 2.0, size / 2.0)
+	var radius = size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist = Vector2(x, y).distance_to(center)
+			var alpha = clampf(1.0 - dist / radius, 0.0, 1.0)
+			alpha = alpha * alpha
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	light.texture = ImageTexture.create_from_image(img)
+
+	add_child(light)
+
+	# Pulse the light for flickering fire effect
+	var tween = create_tween().set_loops()
+	tween.tween_property(light, "energy", 3.0, 0.1)
+	tween.tween_property(light, "energy", 2.0, 0.1)
+	tween.tween_property(light, "energy", 2.8, 0.08)
+	tween.tween_property(light, "energy", 2.2, 0.12)
