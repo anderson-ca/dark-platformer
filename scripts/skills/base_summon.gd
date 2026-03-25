@@ -7,6 +7,7 @@ var texture_path: String = ""
 var frame_count: int = 8
 var frame_size: Vector2 = Vector2(48, 48)
 var cols: int = 0  # 0 = single row, auto-calculated
+var start_frame: int = 0  # Which frame to start from in the sheet
 var animation_speed: float = 12.0
 
 # Stats
@@ -77,8 +78,9 @@ func _setup_animation() -> void:
 	# Support grid-based sprite sheets (multiple rows)
 	var num_cols: int = cols if cols > 0 else frame_count
 	for i in range(frame_count):
-		var col: int = i % num_cols
-		var row: int = i / num_cols
+		var actual_frame: int = start_frame + i
+		var col: int = actual_frame % num_cols
+		var row: int = actual_frame / num_cols
 		var atlas := AtlasTexture.new()
 		atlas.atlas = texture
 		atlas.region = Rect2(col * frame_size.x, row * frame_size.y, frame_size.x, frame_size.y)
