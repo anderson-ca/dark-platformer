@@ -24,7 +24,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	super._ready()
-	scale = Vector2(2.0, 2.0)
+	scale = Vector2(2.0, 6.0)
 
 
 func _setup_animation() -> void:
