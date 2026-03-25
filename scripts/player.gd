@@ -64,6 +64,10 @@ var available_attacks: Array = ["None", "Dark Orb", "Fire", "Ice", "Void", "Ligh
 var current_attack_index: int = 1
 var available_summons: Array = ["None", "Earth Hammer", "Earth Golem"]
 var current_summon_index: int = 1
+const SUMMON_CHANNEL_TIME: float = 1.0
+var summon_channel_timer: float = 0.0
+var is_channeling_summon: bool = false
+var summon_triggered_this_channel: bool = false
 var _attack_label: Label
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
@@ -855,22 +859,32 @@ func _physics_process(delta: float) -> void:
 		_was_on_floor = is_on_floor()
 		return
 
-	# --- Shield ---
+	# --- Shield + Summon channeling ---
 	if shield_held and is_on_floor() and not is_attacking and dash_timer <= 0.0:
 		if not is_shielding:
 			is_shielding = true
+			is_channeling_summon = true
+			summon_channel_timer = 0.0
+			summon_triggered_this_channel = false
 			_shield_phase = "up"
 			animated_sprite.play("shield_up")
-			# Activate shield zone facing player direction
 			_shield_zone.scale.x = facing
 			_shield_zone.monitoring = true
-			# Spawn summon on shield activation
-			_spawn_summon()
+			print("Started channeling summon...")
+		elif is_channeling_summon and not summon_triggered_this_channel:
+			summon_channel_timer += delta
+			if summon_channel_timer >= SUMMON_CHANNEL_TIME:
+				_spawn_summon()
+				summon_triggered_this_channel = true
+				print("SUMMON COMPLETE!")
 	elif is_shielding and not shield_held:
-		# Release shield
+		if not summon_triggered_this_channel:
+			print("Channel cancelled - released too early")
 		_shield_phase = "down"
 		animated_sprite.play("shield_down")
 		_shield_zone.monitoring = false
+		is_channeling_summon = false
+		summon_channel_timer = 0.0
 
 	if is_shielding:
 		# Repel enemies each frame
