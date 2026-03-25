@@ -35,6 +35,7 @@ func _ready() -> void:
 
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	animated_sprite.frame = 0
 	animated_sprite.play("summon")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
