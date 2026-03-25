@@ -10,7 +10,7 @@ func _init() -> void:
 
 	damage = 3
 	knockback_force = 280.0
-	spawn_offset = Vector2(70, -20)
+	spawn_offset = Vector2(70, -21)
 
 	hitbox_start_frame = 4
 	hitbox_end_frame = 12
