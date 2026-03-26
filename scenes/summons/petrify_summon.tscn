@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/skills/petrify_summon.gd" id="1_petrify"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_petrify"]
-size = Vector2(40, 40)
+size = Vector2(80, 40)
 
 [node name="PetrifySummon" type="Node2D"]
 script = ExtResource("1_petrify")

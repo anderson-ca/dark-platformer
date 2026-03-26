@@ -38,7 +38,7 @@ func _setup_animation():
 	animated_sprite.sprite_frames = sprite_frames
 	frame_count = loaded
 
-	scale = Vector2(2.0, 2.0)
+	scale = Vector2(1.4, 1.4)
 
 	print("Petrify: ", loaded, " Medusa Scream frames loaded")
 
