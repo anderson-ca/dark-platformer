@@ -42,6 +42,13 @@ var _petrify_overlay: Sprite2D = null
 var _petrify_original_material: Material = null
 var _petrify_damage_multiplier: float = 1.0
 
+# Burn
+var is_burning: bool = false
+var burn_timer: float = 0.0
+var burn_tick_timer: float = 0.0
+var burn_damage_per_tick: int = 1
+var _burn_tween: Tween = null
+
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
 @onready var attack_area: Area2D = $AttackArea
@@ -118,6 +125,23 @@ func _physics_process(delta: float) -> void:
 			_end_petrify()
 		move_and_slide()
 		return
+
+	# Burn tick — runs alongside normal AI
+	if is_burning:
+		burn_timer -= delta
+		burn_tick_timer -= delta
+		if burn_tick_timer <= 0.0:
+			burn_tick_timer = 0.5
+			health -= burn_damage_per_tick
+			_spawn_hit_effect()
+			print("Burn tick: ", name, " took ", burn_damage_per_tick, " damage, health=", health)
+			if health <= 0:
+				_enter_state(State.DEATH)
+				_end_burn()
+				move_and_slide()
+				return
+		if burn_timer <= 0.0:
+			_end_burn()
 
 	# Gravity
 	if not is_on_floor():
@@ -499,6 +523,36 @@ func _play_stone_break() -> void:
 	add_child(break_sprite)
 	break_sprite.play("stone_break")
 	print("Ghoul: playing Stone Break (", loaded, " frames)")
+
+
+func apply_burn(duration: float, damage_per_tick: int) -> void:
+	if state == State.DEATH:
+		return
+	# Refresh timer but don't stack damage
+	is_burning = true
+	burn_timer = duration
+	burn_damage_per_tick = damage_per_tick
+	if burn_tick_timer <= 0.0:
+		burn_tick_timer = 0.5
+	print("Ghoul BURNING for ", duration, "s, ", damage_per_tick, " damage per tick")
+
+	# Start flicker tween if not already active
+	if _burn_tween and _burn_tween.is_valid():
+		return
+	_burn_tween = create_tween().set_loops()
+	_burn_tween.tween_property(animated_sprite, "modulate", Color(1.0, 0.5, 0.3, 1.0), 0.15)
+	_burn_tween.tween_property(animated_sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.15)
+
+
+func _end_burn() -> void:
+	is_burning = false
+	burn_timer = 0.0
+	burn_tick_timer = 0.0
+	animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	if _burn_tween and _burn_tween.is_valid():
+		_burn_tween.kill()
+		_burn_tween = null
+	print("Burn expired on ", name)
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:
