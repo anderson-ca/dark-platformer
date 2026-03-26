@@ -11,13 +11,13 @@ var damage_tick_interval: float = 0.6
 var grab_radius: float = 60.0
 var _grabbed_enemy: Node2D = null
 
-# Spritesheet: 1408x192, actual frame size is 128x192 = 11 frames
-const SHEET_FRAME_W = 128
+# Spritesheet: 1408x192, frame size is 64x192 = 22 frames
+const SHEET_FRAME_W = 64
 const SHEET_FRAME_H = 192
-const TOTAL_FRAMES = 11
-const RISE_FRAMES = 4
-const HOLD_FRAMES = 4
-const RETRACT_FRAMES = 3
+const TOTAL_FRAMES = 22
+const RISE_FRAMES = 7
+const HOLD_FRAMES = 8
+const RETRACT_FRAMES = 7
 
 
 func _init():
@@ -117,7 +117,7 @@ func _setup_animation():
 	# Keep default centered=true, no offset — let spawn_offset handle positioning
 	animated_sprite.offset = Vector2.ZERO
 
-	print("Dark Tentacle: 128x192 frames, rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES)
+	print("Dark Tentacle: 64x192 frames, rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES)
 
 
 func _on_animation_finished():
