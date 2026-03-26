@@ -53,6 +53,11 @@ var _burn_tween: Tween = null
 var is_rooted: bool = false
 var root_timer: float = 0.0
 
+# Visibility — rim light + eye light
+var _eye_light: PointLight2D = null
+var _rim_material: ShaderMaterial = null
+var _telegraph_tween: Tween = null
+
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
 @onready var attack_area: Area2D = $AttackArea
@@ -74,6 +79,9 @@ func _ready() -> void:
 				_player = world.get_node("Player")
 				break
 			world = world.get_parent()
+
+	_create_rim_light()
+	_create_eye_light()
 
 	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
 	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
@@ -300,6 +308,7 @@ func _enter_state(new_state: State) -> void:
 			_face_player()
 			_has_dealt_damage = false
 			animated_sprite.play("attack")
+			_attack_telegraph_flare()
 		State.HIT:
 			hit_stun_timer = HIT_STUN_TIME
 			animated_sprite.play("hit")
@@ -322,6 +331,7 @@ func _on_animation_finished() -> void:
 		State.WAKE:
 			_enter_state(State.CHASE)
 		State.ATTACK:
+			_attack_telegraph_dim()
 			attack_count += 1
 			attack_cooldown_timer = ATTACK_COOLDOWN
 			if attack_count >= MAX_CONSECUTIVE_ATTACKS:
@@ -584,6 +594,91 @@ func _end_root() -> void:
 	root_timer = 0.0
 	animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	print("Root expired on ", name)
+
+
+func _create_rim_light() -> void:
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec4 rim_color : source_color = vec4(0.6, 0.1, 0.1, 0.6);
+uniform float rim_width : hint_range(0.0, 5.0) = 1.0;
+
+void fragment() {
+	vec2 size = TEXTURE_PIXEL_SIZE * rim_width;
+	float neighbor = 0.0;
+
+	neighbor += texture(TEXTURE, UV + vec2(-size.x, 0)).a;
+	neighbor += texture(TEXTURE, UV + vec2(size.x, 0)).a;
+	neighbor += texture(TEXTURE, UV + vec2(0, -size.y)).a;
+	neighbor += texture(TEXTURE, UV + vec2(0, size.y)).a;
+	neighbor += texture(TEXTURE, UV + vec2(-size.x, -size.y)).a;
+	neighbor += texture(TEXTURE, UV + vec2(size.x, -size.y)).a;
+	neighbor += texture(TEXTURE, UV + vec2(-size.x, size.y)).a;
+	neighbor += texture(TEXTURE, UV + vec2(size.x, size.y)).a;
+
+	neighbor = min(neighbor, 1.0);
+
+	vec4 tex_color = texture(TEXTURE, UV);
+	float rim_mask = neighbor * (1.0 - tex_color.a);
+
+	vec4 rim = rim_color * rim_mask;
+	COLOR = mix(rim, tex_color, tex_color.a);
+}
+"""
+	_rim_material = ShaderMaterial.new()
+	_rim_material.shader = shader
+	_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, 0.6))
+	_rim_material.set_shader_parameter("rim_width", 1.0)
+	animated_sprite.material = _rim_material
+	print("Ghoul rim light shader applied")
+
+
+func _create_eye_light() -> void:
+	_eye_light = PointLight2D.new()
+	_eye_light.color = Color(0.7, 0.15, 0.1)
+	_eye_light.energy = 1.2
+	_eye_light.texture_scale = 0.8
+	_eye_light.position = Vector2(0, -10)
+
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	var center := Vector2(32, 32)
+	for y in range(64):
+		for x in range(64):
+			var dist := Vector2(x, y).distance_to(center) / 32.0
+			var alpha := clampf(1.0 - dist, 0.0, 1.0)
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	_eye_light.texture = ImageTexture.create_from_image(img)
+	add_child(_eye_light)
+	print("Ghoul eye light created")
+
+
+func _attack_telegraph_flare() -> void:
+	if _telegraph_tween and _telegraph_tween.is_valid():
+		_telegraph_tween.kill()
+	_telegraph_tween = create_tween().set_parallel(true)
+	if _eye_light:
+		_telegraph_tween.tween_property(_eye_light, "energy", 3.0, 0.2)
+	if _rim_material:
+		_telegraph_tween.tween_method(func(val: float) -> void:
+			if _rim_material:
+				_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, val))
+		, 0.6, 1.0, 0.2)
+	print("Ghoul attack telegraph — eyes flare")
+
+
+func _attack_telegraph_dim() -> void:
+	if _telegraph_tween and _telegraph_tween.is_valid():
+		_telegraph_tween.kill()
+	_telegraph_tween = create_tween().set_parallel(true)
+	if _eye_light:
+		_telegraph_tween.tween_property(_eye_light, "energy", 1.2, 0.3)
+	if _rim_material:
+		_telegraph_tween.tween_method(func(val: float) -> void:
+			if _rim_material:
+				_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, val))
+		, 1.0, 0.6, 0.3)
+	print("Ghoul attack telegraph — eyes dim")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:
