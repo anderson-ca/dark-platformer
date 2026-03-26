@@ -28,7 +28,7 @@ func _init():
 	animation_speed = 10.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(65, 12)
+	spawn_offset = Vector2(65, 0)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
@@ -143,11 +143,8 @@ func _setup_animation():
 	animated_sprite.sprite_frames = sprite_frames
 	frame_count = TOTAL_FRAMES
 
-	# Art bottom is at y=181 of 192px frame. Keep centered=true (default).
-	# Offset so the bottom of the art aligns with the node origin (ground level).
-	# Center of frame = 96. Art bottom at 181. Distance from center to art bottom = 181-96 = 85.
-	# So offset.y = +85 shifts the sprite down so art bottom sits at node origin.
-	animated_sprite.offset = Vector2(0, 85)
+	# Keep default centered=true, no offset — let spawn_offset handle positioning
+	animated_sprite.offset = Vector2.ZERO
 
 	print("Dark Tentacle: 128x192 frames, rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES)
 
