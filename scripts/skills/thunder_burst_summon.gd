@@ -99,7 +99,7 @@ func _screen_flash():
 		tween.tween_property(canvas_mod, "color", original_color, 0.15)
 
 	# Flash ParallaxBackground
-	var parallax = get_tree().root.find_child("ParallaxBackground", true, false)
+	var parallax = get_tree().root.find_child("ParallaxBackground", true, false) as CanvasItem
 	if parallax:
 		var orig_mod = parallax.modulate
 		var tween = create_tween()
