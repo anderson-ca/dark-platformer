@@ -62,7 +62,7 @@ var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 # Attack switching (debug)
 var available_attacks: Array = ["None", "Dark Orb", "Fire", "Ice", "Void", "Lightning", "Arrow", "Energy"]
 var current_attack_index: int = 1
-var available_summons: Array = ["None", "Earth Hammer", "Earth Golem", "Earth Trap", "Earth Impale", "Fire Beam", "Petrify", "Tornado", "Earth Burst", "Thunder Burst", "Fire Bite", "Electric Trap", "Dark Tentacle"]
+var available_summons: Array = ["None", "Earth Hammer", "Earth Golem", "Earth Trap", "Earth Impale", "Fire Beam", "Petrify", "Tornado", "Earth Burst", "Thunder Burst", "Fire Bite", "Electric Trap", "Dark Tentacle", "Dark Eyes"]
 var current_summon_index: int = 1
 const SUMMON_CHANNEL_TIME: float = 1.0
 var summon_channel_timer: float = 0.0
@@ -537,6 +537,8 @@ func _spawn_summon() -> void:
 			summon_scene = preload("res://scenes/summons/electric_trap_summon.tscn")
 		"Dark Tentacle":
 			summon_scene = preload("res://scenes/summons/dark_tentacle_summon.tscn")
+		"Dark Eyes":
+			summon_scene = preload("res://scenes/summons/dark_eyes_summon.tscn")
 		_:
 			return
 

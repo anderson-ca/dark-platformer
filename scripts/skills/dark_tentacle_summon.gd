@@ -10,6 +10,8 @@ var damage_tick_timer: float = 0.0
 var damage_tick_interval: float = 0.6
 var grab_radius: float = 60.0
 var _grabbed_enemy: Node2D = null
+var _light: PointLight2D = null
+var _outline: AnimatedSprite2D = null
 
 # Spritesheet: 1408x192, two rows of 11 frames each = 22 frames
 # Frame size: 128x96
@@ -50,12 +52,27 @@ func _ready():
 
 	scale = Vector2(1.5, 1.5)
 
+	_create_light()
+	_create_outline()
+
 	print("Dark Tentacle RISING, spawn_offset=", spawn_offset)
+	print("Dark Tentacle: PointLight and purple outline added")
 
 
 func _process(delta: float):
+	# Sync outline animation and frame
+	if _outline and is_instance_valid(_outline):
+		if _outline.animation != animated_sprite.animation:
+			_outline.play(animated_sprite.animation)
+		if _outline.frame != animated_sprite.frame:
+			_outline.frame = animated_sprite.frame
+
 	if phase == Phase.HOLD:
 		hold_timer += delta
+
+		# Pulse light during hold
+		if _light and is_instance_valid(_light):
+			_light.energy = 3.0 + sin(hold_timer * 4.0) * 0.5
 
 		if _grabbed_enemy and is_instance_valid(_grabbed_enemy):
 			damage_tick_timer += delta
@@ -67,6 +84,87 @@ func _process(delta: float):
 
 		if hold_timer >= hold_duration:
 			_start_retract()
+
+
+func _create_light():
+	_light = PointLight2D.new()
+	_light.color = Color(0.4, 0.1, 0.6)
+	_light.energy = 3.0
+	_light.texture_scale = 2.5
+	_light.position = Vector2(0, -SHEET_FRAME_H * 0.5)
+
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	var center := Vector2(32, 32)
+	for y in range(64):
+		for x in range(64):
+			var dist := Vector2(x, y).distance_to(center) / 32.0
+			var alpha := clampf(1.0 - dist, 0.0, 1.0)
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
+	_light.texture = ImageTexture.create_from_image(img)
+	add_child(_light)
+
+
+func _create_outline():
+	_outline = AnimatedSprite2D.new()
+	_outline.name = "AuraOutline"
+	_outline.sprite_frames = animated_sprite.sprite_frames
+	_outline.flip_h = animated_sprite.flip_h
+	_outline.z_index = -1
+	_outline.centered = animated_sprite.centered
+	_outline.offset = animated_sprite.offset
+	_outline.position = animated_sprite.position
+	_outline.scale = animated_sprite.scale
+
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec4 outline_color : source_color = vec4(0.5, 0.1, 0.7, 1.0);
+uniform float outline_width : hint_range(0.0, 10.0) = 1.5;
+uniform float pulse : hint_range(0.0, 1.0) = 1.0;
+
+void fragment() {
+	vec2 size = TEXTURE_PIXEL_SIZE * outline_width;
+	float outline = 0.0;
+
+	outline += texture(TEXTURE, UV + vec2(-size.x, 0)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, 0)).a;
+	outline += texture(TEXTURE, UV + vec2(0, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(0, size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(-size.x, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, -size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(-size.x, size.y)).a;
+	outline += texture(TEXTURE, UV + vec2(size.x, size.y)).a;
+
+	outline = min(outline, 1.0);
+
+	vec4 tex_color = texture(TEXTURE, UV);
+	float outline_mask = outline * (1.0 - tex_color.a);
+
+	vec4 glow = outline_color * outline_mask * pulse;
+	glow.a *= 0.8;
+
+	COLOR = glow;
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("outline_color", Color(0.5, 0.1, 0.7, 1.0))
+	mat.set_shader_parameter("outline_width", 1.5)
+	_outline.material = mat
+
+	add_child(_outline)
+	_outline.play("rise")
+
+	var tween := create_tween().set_loops()
+	tween.tween_method(func(val: float) -> void:
+		if is_instance_valid(_outline) and _outline.material:
+			_outline.material.set_shader_parameter("pulse", val)
+	, 0.5, 1.0, 0.3)
+	tween.tween_method(func(val: float) -> void:
+		if is_instance_valid(_outline) and _outline.material:
+			_outline.material.set_shader_parameter("pulse", val)
+	, 1.0, 0.5, 0.3)
 
 
 func _start_retract():
