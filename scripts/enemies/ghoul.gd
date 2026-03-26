@@ -89,7 +89,7 @@ func _ready() -> void:
 	var col_rect := col_shape.shape as RectangleShape2D
 	var col_bottom: float = col_shape.position.y + col_rect.size.y / 2.0
 	print("Ghoul collision: pos=", col_shape.position, " size=", col_rect.size, " bottom_y=", col_bottom)
-	print("Ghoul sprite: pos=", animated_sprite.position, " scale=", animated_sprite.scale, " centered=", animated_sprite.centered)
+	print("Ghoul sprite: pos=", animated_sprite.position, " (adjust Y to move feet up/down)")
 	if _rim_material:
 		print("Ghoul rim shader: rim_color=", _rim_material.get_shader_parameter("rim_color"), " rim_width=", _rim_material.get_shader_parameter("rim_width"))
 
