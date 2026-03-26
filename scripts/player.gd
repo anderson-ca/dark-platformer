@@ -292,9 +292,13 @@ func _setup_attack_label() -> void:
 	_attack_label.name = "AttackLabel"
 	_attack_label.add_theme_font_size_override("font_size", 11)
 	_attack_label.add_theme_color_override("font_color", Color(0.7, 0.5, 1.0))
-	_attack_label.position = Vector2(-50, -45)
-	_attack_label.z_index = 20
-	add_child(_attack_label)
+	_attack_label.position = Vector2(12, 70)
+	# Add to HUD CanvasLayer so it stays fixed on screen
+	var hud = get_tree().root.find_child("HUD", true, false)
+	if hud:
+		hud.add_child(_attack_label)
+	else:
+		add_child(_attack_label)
 	_update_debug_label()
 	print("Skill switcher: Tab=attack, `=summon")
 
