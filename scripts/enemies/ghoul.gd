@@ -35,6 +35,13 @@ var stun_timer: float = 0.0
 var knockback_velocity: Vector2 = Vector2.ZERO
 const KNOCKBACK_FRICTION := 400.0
 
+# Petrify
+var is_petrified: bool = false
+var petrify_timer: float = 0.0
+var _petrify_overlay: Sprite2D = null
+var _petrify_original_material: Material = null
+var _petrify_damage_multiplier: float = 1.0
+
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
 @onready var attack_area: Area2D = $AttackArea
@@ -103,6 +110,15 @@ func _setup_animations() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Petrify check — FIRST, before anything else
+	if is_petrified:
+		petrify_timer -= delta
+		velocity = Vector2.ZERO
+		if petrify_timer <= 0.0:
+			_end_petrify()
+		move_and_slide()
+		return
+
 	# Gravity
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
@@ -314,7 +330,10 @@ func take_damage_with_knockback(amount: int, knockback: Vector2) -> void:
 	if state == State.DEATH:
 		return
 	_spawn_hit_effect()
-	health -= amount
+	var actual_damage: int = int(amount * _petrify_damage_multiplier)
+	health -= actual_damage
+	if is_petrified:
+		print("Ghoul petrified 2x damage: ", amount, " -> ", actual_damage)
 	knockback_velocity = knockback
 	print("Ghoul knockback applied: ", knockback, " health=", health)
 	if health <= 0:
@@ -331,7 +350,10 @@ func take_damage(from_position: Vector2) -> void:
 	if state == State.DEATH:
 		return
 	_spawn_hit_effect()
-	health -= 1
+	var actual_damage: int = int(1 * _petrify_damage_multiplier)
+	health -= actual_damage
+	if is_petrified:
+		print("Ghoul petrified 2x damage: 1 -> ", actual_damage)
 	print("Ghoul hit! health=", health, " (during ", State.keys()[state], ")")
 	# Knockback away from damage source
 	var kb_dir: float = sign(global_position.x - from_position.x)
@@ -378,6 +400,105 @@ func apply_stun(duration: float) -> void:
 	attack_cooldown_timer = 0.0
 	animated_sprite.play("hit")
 	print("Ghoul STUNNED for ", duration, "s")
+
+
+func apply_petrify(duration: float) -> void:
+	if state == State.DEATH:
+		return
+	is_petrified = true
+	petrify_timer = duration
+	_petrify_damage_multiplier = 2.0
+	velocity = Vector2.ZERO
+
+	# Freeze animation on current frame
+	animated_sprite.pause()
+	print("Ghoul PETRIFIED for ", duration, "s — frame frozen, 2x damage")
+
+	# Save original material and apply stone shader
+	_petrify_original_material = animated_sprite.material
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec3 stone_color : source_color = vec3(0.196, 0.184, 0.157);
+
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);
+	float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+	vec3 gray = vec3(lum);
+	vec3 stoned = mix(gray, stone_color, 0.7);
+	stoned *= 0.6;
+	COLOR = vec4(stoned, tex.a);
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("stone_color", Vector3(0.196, 0.184, 0.157))
+	animated_sprite.material = mat
+
+	# Stone overlay
+	var stone_tex := load("res://assets/effects/combat/summons/Petrify/Petrify Separeted Frames/Stone/Stone1.png") as Texture2D
+	if stone_tex:
+		_petrify_overlay = Sprite2D.new()
+		_petrify_overlay.name = "StoneOverlay"
+		_petrify_overlay.texture = stone_tex
+		_petrify_overlay.modulate = Color(1, 1, 1, 0.5)
+		_petrify_overlay.z_index = 1
+		_petrify_overlay.position = Vector2(0, -16)
+		_petrify_overlay.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		add_child(_petrify_overlay)
+		print("Ghoul: stone overlay applied")
+
+
+func _end_petrify() -> void:
+	is_petrified = false
+	_petrify_damage_multiplier = 1.0
+	print("Ghoul petrify ENDED — restoring normal state")
+
+	# Remove stone shader
+	animated_sprite.material = _petrify_original_material
+	_petrify_original_material = null
+
+	# Remove stone overlay
+	if _petrify_overlay:
+		_petrify_overlay.queue_free()
+		_petrify_overlay = null
+
+	# Play stone break animation
+	_play_stone_break()
+
+	# Resume AI
+	animated_sprite.play()
+	_enter_state(State.IDLE)
+
+
+func _play_stone_break() -> void:
+	var base_path := "res://assets/effects/combat/summons/Petrify/Petrify Separeted Frames/Stone/"
+	var sf := SpriteFrames.new()
+	sf.add_animation("stone_break")
+	sf.set_animation_speed("stone_break", 12.0)
+	sf.set_animation_loop("stone_break", false)
+
+	var loaded := 0
+	for i in range(1, 6):
+		var tex := load(base_path + "Stone Break" + str(i) + ".png") as Texture2D
+		if tex:
+			sf.add_frame("stone_break", tex)
+			loaded += 1
+
+	if loaded == 0:
+		print("Ghoul: no Stone Break frames loaded!")
+		return
+
+	var break_sprite := AnimatedSprite2D.new()
+	break_sprite.sprite_frames = sf
+	break_sprite.z_index = 10
+	break_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	break_sprite.position = Vector2(0, -16)
+	break_sprite.animation_finished.connect(break_sprite.queue_free)
+	add_child(break_sprite)
+	break_sprite.play("stone_break")
+	print("Ghoul: playing Stone Break (", loaded, " frames)")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:
