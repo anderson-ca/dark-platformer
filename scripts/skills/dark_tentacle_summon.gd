@@ -10,7 +10,6 @@ var damage_tick_timer: float = 0.0
 var damage_tick_interval: float = 0.6
 var grab_radius: float = 60.0
 var _grabbed_enemy: Node2D = null
-var _light: PointLight2D = null
 
 # Spritesheet: 1408x192, actual frame size is 128x192 = 11 frames
 const SHEET_FRAME_W = 128
@@ -28,7 +27,7 @@ func _init():
 	animation_speed = 5.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(65, 15)
+	spawn_offset = Vector2(90, 25)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
@@ -49,33 +48,7 @@ func _ready():
 
 	scale = Vector2(1.5, 1.5)
 
-	_create_light()
-
 	print("Dark Tentacle RISING, spawn_offset=", spawn_offset)
-
-
-func _create_light():
-	_light = PointLight2D.new()
-	_light.name = "DarkGlow"
-	_light.color = Color(0.4, 0.1, 0.6)
-	_light.energy = 3.0
-	_light.texture_scale = 2.5
-	_light.blend_mode = Light2D.BLEND_MODE_ADD
-
-	var size = 128
-	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center = Vector2(size / 2.0, size / 2.0)
-	var radius = size / 2.0
-	for y in range(size):
-		for x in range(size):
-			var dist = Vector2(x, y).distance_to(center)
-			var alpha = clampf(1.0 - dist / radius, 0.0, 1.0)
-			alpha = alpha * alpha
-			img.set_pixel(x, y, Color(1, 1, 1, alpha))
-	_light.texture = ImageTexture.create_from_image(img)
-
-	_light.position = Vector2(0, -80)
-	add_child(_light)
 
 
 func _process(delta: float):
@@ -89,9 +62,6 @@ func _process(delta: float):
 				if _grabbed_enemy.has_method("take_damage"):
 					_grabbed_enemy.take_damage(global_position)
 					print("Tentacle damage tick on ", _grabbed_enemy.name)
-
-		if _light:
-			_light.energy = 3.0 + sin(hold_timer * 6.0) * 0.5
 
 		if hold_timer >= hold_duration:
 			_start_retract()
