@@ -57,6 +57,7 @@ var root_timer: float = 0.0
 var _eye_light: PointLight2D = null
 var _rim_material: ShaderMaterial = null
 var _telegraph_tween: Tween = null
+var _revealed: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
@@ -159,6 +160,22 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
 		velocity.y = min(velocity.y, MAX_FALL_SPEED)
+
+	# Reveal when player approaches
+	if not _revealed and _player and is_instance_valid(_player):
+		var dist := global_position.distance_to(_player.global_position)
+		if dist < DETECTION_RANGE:
+			_revealed = true
+			print("Ghoul revealed — player in range")
+			print("Ghoul eyes activating")
+			var reveal_tween := create_tween().set_parallel(true)
+			if _eye_light:
+				reveal_tween.tween_property(_eye_light, "energy", 1.2, 0.4)
+			if _rim_material:
+				reveal_tween.tween_method(func(val: float) -> void:
+					if _rim_material:
+						_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
+				, 0.0, 0.6, 0.4)
 
 	# Tick cooldowns
 	attack_cooldown_timer = max(attack_cooldown_timer - delta, 0.0)
@@ -601,7 +618,7 @@ func _create_rim_light() -> void:
 	shader.code = """
 shader_type canvas_item;
 
-uniform vec4 rim_color : source_color = vec4(0.6, 0.1, 0.1, 0.6);
+uniform vec4 rim_color : source_color = vec4(0.4, 0.1, 0.6, 0.6);
 uniform float rim_width : hint_range(0.0, 5.0) = 1.0;
 
 void fragment() {
@@ -628,7 +645,7 @@ void fragment() {
 """
 	_rim_material = ShaderMaterial.new()
 	_rim_material.shader = shader
-	_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, 0.6))
+	_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, 0.0))
 	_rim_material.set_shader_parameter("rim_width", 1.0)
 	animated_sprite.material = _rim_material
 	print("Ghoul rim light shader applied")
@@ -636,8 +653,8 @@ void fragment() {
 
 func _create_eye_light() -> void:
 	_eye_light = PointLight2D.new()
-	_eye_light.color = Color(0.7, 0.15, 0.1)
-	_eye_light.energy = 1.2
+	_eye_light.color = Color(0.5, 0.1, 0.6)
+	_eye_light.energy = 0.0
 	_eye_light.texture_scale = 0.8
 	_eye_light.position = Vector2(0, -10)
 
@@ -662,7 +679,7 @@ func _attack_telegraph_flare() -> void:
 	if _rim_material:
 		_telegraph_tween.tween_method(func(val: float) -> void:
 			if _rim_material:
-				_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, val))
+				_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
 		, 0.6, 1.0, 0.2)
 	print("Ghoul attack telegraph — eyes flare")
 
@@ -676,7 +693,7 @@ func _attack_telegraph_dim() -> void:
 	if _rim_material:
 		_telegraph_tween.tween_method(func(val: float) -> void:
 			if _rim_material:
-				_rim_material.set_shader_parameter("rim_color", Color(0.6, 0.1, 0.1, val))
+				_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
 		, 1.0, 0.6, 0.3)
 	print("Ghoul attack telegraph — eyes dim")
 
