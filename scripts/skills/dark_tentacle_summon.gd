@@ -11,9 +11,11 @@ var damage_tick_interval: float = 0.6
 var grab_radius: float = 60.0
 var _grabbed_enemy: Node2D = null
 
-# Spritesheet: 1408x192, frame size is 64x192 = 22 frames
-const SHEET_FRAME_W = 64
-const SHEET_FRAME_H = 192
+# Spritesheet: 1408x192, two rows of 11 frames each = 22 frames
+# Frame size: 128x96
+const SHEET_FRAME_W = 128
+const SHEET_FRAME_H = 96
+const COLS = 11
 const TOTAL_FRAMES = 22
 const RISE_FRAMES = 7
 const HOLD_FRAMES = 8
@@ -23,7 +25,7 @@ const RETRACT_FRAMES = 7
 func _init():
 	summon_name = "Dark Tentacle"
 	texture_path = "res://assets/effects/combat/summons/darkTentacles/Electric_tentacle-Sheet.png"
-	frame_size = Vector2(SHEET_FRAME_W, SHEET_FRAME_H)
+	frame_size = Vector2(128, 96)
 	animation_speed = 5.0
 	damage = 1
 	knockback_force = 0.0
@@ -81,43 +83,41 @@ func _setup_animation():
 
 	var sprite_frames = SpriteFrames.new()
 
-	# Rise — frames 0-3
+	# Helper to get atlas region for frame index (row/col grid)
+	var all_frames: Array[AtlasTexture] = []
+	for i in range(TOTAL_FRAMES):
+		var col = i % COLS
+		var row = i / COLS
+		var atlas = AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = Rect2(col * SHEET_FRAME_W, row * SHEET_FRAME_H, SHEET_FRAME_W, SHEET_FRAME_H)
+		all_frames.append(atlas)
+
+	# Rise — frames 0-6
 	sprite_frames.add_animation("rise")
 	sprite_frames.set_animation_speed("rise", animation_speed)
 	sprite_frames.set_animation_loop("rise", false)
 	for i in range(RISE_FRAMES):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
-		sprite_frames.add_frame("rise", atlas)
+		sprite_frames.add_frame("rise", all_frames[i])
 
-	# Hold — frames 4-7, loops
+	# Hold — frames 7-14, loops
 	sprite_frames.add_animation("hold")
 	sprite_frames.set_animation_speed("hold", animation_speed)
 	sprite_frames.set_animation_loop("hold", true)
 	for i in range(RISE_FRAMES, RISE_FRAMES + HOLD_FRAMES):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
-		sprite_frames.add_frame("hold", atlas)
+		sprite_frames.add_frame("hold", all_frames[i])
 
-	# Retract — frames 8-10
+	# Retract — frames 15-21
 	sprite_frames.add_animation("retract")
 	sprite_frames.set_animation_speed("retract", animation_speed)
 	sprite_frames.set_animation_loop("retract", false)
 	for i in range(RISE_FRAMES + HOLD_FRAMES, TOTAL_FRAMES):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
-		sprite_frames.add_frame("retract", atlas)
+		sprite_frames.add_frame("retract", all_frames[i])
 
 	animated_sprite.sprite_frames = sprite_frames
 	frame_count = TOTAL_FRAMES
 
-	# Keep default centered=true, no offset — let spawn_offset handle positioning
-	animated_sprite.offset = Vector2.ZERO
-
-	print("Dark Tentacle: 64x192 frames, rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES)
+	print("Dark Tentacle: 128x96 frames (2 rows x 11 cols), rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES)
 
 
 func _on_animation_finished():
