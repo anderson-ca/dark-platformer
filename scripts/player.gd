@@ -31,8 +31,8 @@ const DASH_DURATION = 0.12
 const DASH_COOLDOWN = 0.6
 
 # Sprite frame size (dark sage strips use 192×192 cells)
-const FRAME_W = 231
-const FRAME_H = 190
+const FRAME_W = 192
+const FRAME_H = 192
 
 # Respawn
 var fall_respawn_y: float = 9999.0
@@ -137,26 +137,23 @@ func _setup_sprite_frames() -> void:
 		sf.remove_animation("default")
 
 	# [anim_name, file_path, frame_count, fps, loop]
-	# Wizard sprites: 231x190 per frame
-	var P := "res://assets/sprites/player/wizard/"
+	var P := "res://assets/sprites/player/dark_sage/"
 	var anims := [
-		["idle",        P + "Idle.png",     6, 8,  true],
-		["run",         P + "Run.png",      8, 10, true],
-		["jump",        P + "Jump.png",     2, 10, false],
-		["fall",        P + "Fall.png",     2, 8,  true],
-		["dash",        P + "Run.png",      8, 14, false],   # fallback: no Dash.png
-		["wall_slide",  P + "Fall.png",     2, 8,  true],    # fallback: no Wall Slide.png
-		["death",       P + "Death.png",    7, 8,  false],
-		["hit",         P + "Hit.png",      4, 8,  false],
-		["attack1",     P + "Attack1.png",  8, 12, false, 0],
-		["attack",      P + "Attack2.png",  8, 12, false, 0],
-		["shield_up",   P + "Idle.png",     6, 10, false],   # fallback: no Shield up.png
-		["shield_hold", P + "Idle.png",     6, 10, true],    # fallback: no Shield hold.png
-		["shield_down", P + "Idle.png",     6, 10, false],   # fallback: no Shield down.png
-		["shockwave",   P + "Attack2.png",  8, 12, false],   # fallback: no Shockwave.png
+		["idle",        P + "The Evil Sage-Idle Front.png",  9, 8,  true],
+		["run",         P + "The Evil Sage-Run.png",         8, 10, true],
+		["jump",        P + "The Evil Sage-Jump.png",        4, 10, false],
+		["fall",        P + "The Evil Sage-Fall.png",        4, 8,  true],
+		["dash",        P + "The Evil Sage-Dash.png",        4, 14, false],
+		["wall_slide",  P + "The Evil Sage-Wall Slide.png",  4, 8,  true],
+		["death",       P + "The Evil Sage-Death.png",       8, 8,  false],
+		["hit",         P + "The Evil Sage-hit.png",         2, 8,  false],
+		["attack1",     P + "The Evil Sage-Orb attack.png",  8, 12, false, 0],
+		["attack",      P + "The Evil Sage-Orb attack.png", 16, 12, false, 0],
+		["shield_up",   P + "The Evil Sage-Shield up.png",    4, 10, false],
+		["shield_hold", P + "The Evil Sage-shield hold.png",  8, 10, true],
+		["shield_down", P + "The Evil Sage-shield down.png",  4, 10, false],
+		["shockwave",   P + "The Evil Sage-Shockwave.png",   14, 12, false],
 	]
-	print("Wizard sprites: frame size ", FRAME_W, "x", FRAME_H)
-	print("  FALLBACK: dash->Run, wall_slide->Fall, shield_up/hold/down->Idle, shockwave->Attack2")
 
 	for anim_def in anims:
 		var anim_name: String = anim_def[0]
@@ -182,11 +179,11 @@ func _setup_sprite_frames() -> void:
 	for anim_def in anims:
 		print("  ", anim_def[0], ": ", anim_def[2], " frames @ ", anim_def[3], " FPS -> ", anim_def[1])
 	print("Combo: attack1 (8 frames, single orb) | full attack (16 frames, both orbs) | window=", COMBO_WINDOW_TIME, "s")
-	animated_sprite.scale = Vector2(0.5, 0.5)
-	# Wizard: 231x190 frames scaled to 0.5 = 115x95 on screen
-	# Feet near bottom of frame. Frame center y=95. Collision bottom ~9px below origin.
-	# offset.y = 9/0.5 - (190*0.8 - 95) ≈ 18 - 57 = adjust visually
-	animated_sprite.offset = Vector2(0, -40)
+	animated_sprite.scale = Vector2(1.5, 1.5)
+	# Sage: character at y=107-121 in 192x192 frame, feet at y=121
+	# Frame center y=96. Collision bottom = 9px below origin.
+	# offset.y = 9/1.5 - (121-96) = 6 - 25 = -19
+	animated_sprite.offset = Vector2(0, -19)
 	animated_sprite.play("idle")
 
 
