@@ -49,6 +49,10 @@ var burn_tick_timer: float = 0.0
 var burn_damage_per_tick: int = 1
 var _burn_tween: Tween = null
 
+# Root
+var is_rooted: bool = false
+var root_timer: float = 0.0
+
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
 @onready var attack_area: Area2D = $AttackArea
@@ -162,6 +166,12 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
+	# Root — can still attack but cannot move horizontally
+	if is_rooted:
+		root_timer -= delta
+		if root_timer <= 0.0:
+			_end_root()
+
 	match state:
 		State.IDLE:
 			velocity.x = 0.0
@@ -199,6 +209,10 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0.0, 200.0 * delta)
 			if reposition_timer <= 0.0:
 				_enter_state(State.CHASE)
+
+	# Root freezes horizontal movement after AI runs
+	if is_rooted:
+		velocity.x = 0.0
 
 	# Soft body separation — prevent overlapping player
 	if _player and state != State.DEATH:
@@ -553,6 +567,23 @@ func _end_burn() -> void:
 		_burn_tween.kill()
 		_burn_tween = null
 	print("Burn expired on ", name)
+
+
+func apply_root(duration: float) -> void:
+	if state == State.DEATH:
+		return
+	is_rooted = true
+	root_timer = duration
+	velocity.x = 0.0
+	animated_sprite.modulate = Color(0.6, 0.5, 0.7, 1.0)
+	print("Ghoul ROOTED for ", duration, "s")
+
+
+func _end_root() -> void:
+	is_rooted = false
+	root_timer = 0.0
+	animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	print("Root expired on ", name)
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:
