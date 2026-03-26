@@ -28,15 +28,11 @@ func _init():
 	animation_speed = 12.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(65, -10)
+	spawn_offset = Vector2(65, 12)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
-	magical_aura_enabled = true
-	aura_color = Color(0.5, 0.1, 0.7, 1.0)
-	ghost_interval = 0.05
-
-	print("Dark Tentacle: detected frame size ", SHEET_FRAME_W, "x", SHEET_FRAME_H, ", ", TOTAL_FRAMES, " frames")
+	magical_aura_enabled = false
 
 
 func _ready():
@@ -52,14 +48,11 @@ func _ready():
 	if hitbox:
 		hitbox.monitoring = false
 
-	if magical_aura_enabled:
-		_apply_magical_aura()
-
 	scale = Vector2(2.0, 2.0)
 
 	_create_light()
 
-	print("Dark Tentacle RISING")
+	print("Dark Tentacle RISING, spawn_offset=", spawn_offset, " centered=", animated_sprite.centered)
 
 
 func _create_light():
@@ -86,20 +79,6 @@ func _create_light():
 
 
 func _process(delta: float):
-	# Outline sync
-	var outline = get_node_or_null("AuraOutline") as AnimatedSprite2D
-	if outline and animated_sprite:
-		if outline.animation != animated_sprite.animation:
-			outline.play(animated_sprite.animation)
-		outline.frame = animated_sprite.frame
-
-	# Ghost trails
-	if magical_aura_enabled and animated_sprite:
-		_ghost_timer += delta
-		if _ghost_timer >= ghost_interval:
-			_ghost_timer = 0.0
-			_spawn_summon_ghost()
-
 	if phase == Phase.HOLD:
 		hold_timer += delta
 
@@ -140,35 +119,47 @@ func _setup_animation():
 	sprite_frames.set_animation_speed("rise", animation_speed)
 	sprite_frames.set_animation_loop("rise", false)
 	for i in range(RISE_FRAMES):
+		var region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
 		var atlas = AtlasTexture.new()
 		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
+		atlas.region = region
 		sprite_frames.add_frame("rise", atlas)
+		print("  rise frame ", i, ": region=", region)
 
 	# Hold animation — middle 8 frames, loops
 	sprite_frames.add_animation("hold")
 	sprite_frames.set_animation_speed("hold", animation_speed)
 	sprite_frames.set_animation_loop("hold", true)
 	for i in range(RISE_FRAMES, RISE_FRAMES + HOLD_FRAMES):
+		var region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
 		var atlas = AtlasTexture.new()
 		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
+		atlas.region = region
 		sprite_frames.add_frame("hold", atlas)
+		print("  hold frame ", i, ": region=", region)
 
 	# Retract animation — last 7 frames
 	sprite_frames.add_animation("retract")
 	sprite_frames.set_animation_speed("retract", animation_speed)
 	sprite_frames.set_animation_loop("retract", false)
 	for i in range(RISE_FRAMES + HOLD_FRAMES, TOTAL_FRAMES):
+		var region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
 		var atlas = AtlasTexture.new()
 		atlas.atlas = texture
-		atlas.region = Rect2(i * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H)
+		atlas.region = region
 		sprite_frames.add_frame("retract", atlas)
+		print("  retract frame ", i, ": region=", region)
 
 	animated_sprite.sprite_frames = sprite_frames
 	frame_count = TOTAL_FRAMES
 
+	# Anchor bottom at ground: centered=false, sprite draws downward from top-left
+	# Move sprite up by full height so bottom sits at y=0
+	animated_sprite.centered = false
+	animated_sprite.position.y = -SHEET_FRAME_H
+
 	print("Dark Tentacle: rise=", RISE_FRAMES, " hold=", HOLD_FRAMES, " retract=", RETRACT_FRAMES, " total=", TOTAL_FRAMES)
+	print("  sprite position.y=", animated_sprite.position.y, " (bottom anchored at ground)")
 
 
 func _on_animation_finished():
@@ -205,8 +196,4 @@ func _on_animation_finished():
 				_start_retract()
 
 		Phase.RETRACT:
-			magical_aura_enabled = false
-			var outline_node = get_node_or_null("AuraOutline")
-			if outline_node:
-				outline_node.queue_free()
 			queue_free()
