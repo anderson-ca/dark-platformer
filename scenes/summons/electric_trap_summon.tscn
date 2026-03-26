@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/skills/electric_trap_summon.gd" id="1_etrap"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_etrap"]
+size = Vector2(40, 30)
+
+[node name="ElectricTrapSummon" type="Node2D"]
+script = ExtResource("1_etrap")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 5
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("RectangleShape2D_etrap")
