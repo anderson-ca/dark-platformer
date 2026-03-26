@@ -60,7 +60,7 @@ const COMBO_WINDOW_TIME := 0.4
 var _orb_effect_spawned: bool = false
 var _orb_effect_spawned_2: bool = false  # for second orb in full attack
 # Attack switching (debug)
-var available_attacks: Array = ["None", "Dark Orb", "Fire", "Ice", "Void", "Lightning", "Arrow", "Energy"]
+var available_attacks: Array = ["None", "Dark Orb"]
 var current_attack_index: int = 1
 var available_summons: Array = ["None", "Earth Hammer", "Earth Golem", "Earth Trap", "Earth Impale", "Fire Beam", "Petrify", "Tornado", "Earth Burst", "Thunder Burst", "Fire Bite", "Electric Trap", "Dark Tentacle", "Dark Eyes"]
 var current_summon_index: int = 1
@@ -482,18 +482,6 @@ func _spawn_projectile() -> void:
 	match attack_name:
 		"Dark Orb":
 			projectile_scene = preload("res://scenes/projectiles/orb_projectile.tscn")
-		"Fire":
-			projectile_scene = preload("res://scenes/projectiles/fire_projectile.tscn")
-		"Ice":
-			projectile_scene = preload("res://scenes/projectiles/ice_projectile.tscn")
-		"Void":
-			projectile_scene = preload("res://scenes/projectiles/void_projectile.tscn")
-		"Lightning":
-			projectile_scene = preload("res://scenes/projectiles/lightning_projectile.tscn")
-		"Arrow":
-			projectile_scene = preload("res://scenes/projectiles/arrow_projectile.tscn")
-		"Energy":
-			projectile_scene = preload("res://scenes/projectiles/energy_projectile.tscn")
 		_:
 			return
 

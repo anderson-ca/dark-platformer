@@ -4,25 +4,24 @@ extends BaseSummon
 var _light: PointLight2D = null
 var _outline: AnimatedSprite2D = null
 
-# Spritesheet: 1600x576, 10 frames as vertical slices across FULL height
-# Each frame = 160x576 (both rows combined — tentacles on top, eyes on bottom)
-const SHEET_W = 1600
-const SHEET_H = 576
-const FRAME_W = 160
-const FRAME_H = 576
-const FRAME_COUNT = 10
+# Spritesheet: 1600x576, two rows of 10 frames each = 20 frames
+# Frame size: 160x288
+const SHEET_FRAME_W = 160
+const SHEET_FRAME_H = 288
+const COLS = 10
+const TOTAL_FRAMES = 20
 
 
 func _init():
 	summon_name = "Dark Eyes"
 	texture_path = "res://assets/effects/combat/summons/darkEyes/Dark_eyes-Sheet.png"
-	frame_size = Vector2(FRAME_W, FRAME_H)
-	animation_speed = 10.0
+	frame_size = Vector2(160, 288)
+	animation_speed = 5.0
 	damage = 2
 	knockback_force = 100.0
 	spawn_offset = Vector2(70, 5)
-	hitbox_start_frame = 3
-	hitbox_end_frame = 7
+	hitbox_start_frame = 6
+	hitbox_end_frame = 14
 	match_environment_color = false
 	magical_aura_enabled = false
 
@@ -36,12 +35,15 @@ func _ready():
 	animated_sprite.play("summon")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
 
-	scale = Vector2(2.0, 2.0)
+	if hitbox:
+		hitbox.monitoring = false
+
+	scale = Vector2(0.8, 0.8)
 
 	_create_light()
 	_create_outline()
 
-	print("Dark Eyes: image=", SHEET_W, "x", SHEET_H, " frame_size=", FRAME_W, "x", FRAME_H, " frame_count=", FRAME_COUNT)
+	print("Dark Eyes: 160x288 frames (2 rows x 10 cols), total=", TOTAL_FRAMES)
 	print("Dark Eyes summoned")
 
 
@@ -69,19 +71,25 @@ func _setup_animation():
 		return
 
 	var sprite_frames = SpriteFrames.new()
+
+	var all_frames: Array[AtlasTexture] = []
+	for i in range(TOTAL_FRAMES):
+		var col = i % COLS
+		var row = i / COLS
+		var atlas = AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = Rect2(col * SHEET_FRAME_W, row * SHEET_FRAME_H, SHEET_FRAME_W, SHEET_FRAME_H)
+		all_frames.append(atlas)
+		print("Dark Eyes frame ", i, " row=", row, " col=", col, " region=", atlas.region)
+
 	sprite_frames.add_animation("summon")
 	sprite_frames.set_animation_speed("summon", animation_speed)
 	sprite_frames.set_animation_loop("summon", false)
-
-	for i in range(FRAME_COUNT):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = texture
-		atlas.region = Rect2(i * FRAME_W, 0, FRAME_W, FRAME_H)
-		sprite_frames.add_frame("summon", atlas)
-		print("Dark Eyes frame ", i, " region=", atlas.region)
+	for i in range(TOTAL_FRAMES):
+		sprite_frames.add_frame("summon", all_frames[i])
 
 	animated_sprite.sprite_frames = sprite_frames
-	frame_count = FRAME_COUNT
+	frame_count = TOTAL_FRAMES
 
 
 func _create_light():
@@ -89,7 +97,7 @@ func _create_light():
 	_light.color = Color(0.4, 0.1, 0.6)
 	_light.energy = 3.0
 	_light.texture_scale = 2.5
-	_light.position = Vector2(0, -FRAME_H * 0.3)
+	_light.position = Vector2(0, -SHEET_FRAME_H * 0.5)
 
 	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
 	var center := Vector2(32, 32)
