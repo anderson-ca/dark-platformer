@@ -28,7 +28,7 @@ func _init():
 	animation_speed = 5.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(65, 5)
+	spawn_offset = Vector2(65, 15)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
@@ -74,6 +74,7 @@ func _create_light():
 			img.set_pixel(x, y, Color(1, 1, 1, alpha))
 	_light.texture = ImageTexture.create_from_image(img)
 
+	_light.position = Vector2(0, -80)
 	add_child(_light)
 
 
