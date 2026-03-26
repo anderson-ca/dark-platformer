@@ -84,6 +84,27 @@ func _ready() -> void:
 	_create_rim_light()
 	_create_eye_light()
 
+	# Diagnostics — collision + sprite alignment
+	var col_shape := $CollisionShape2D
+	var col_rect := col_shape.shape as RectangleShape2D
+	var col_bottom: float = col_shape.position.y + col_rect.size.y / 2.0
+	print("Ghoul BEFORE fix: CollisionShape2D pos=", col_shape.position, " size=", col_rect.size, " bottom_y=", col_bottom)
+	print("  AnimatedSprite2D pos=", animated_sprite.position, " centered=", animated_sprite.centered, " offset=", animated_sprite.offset, " scale=", animated_sprite.scale)
+
+	# Fix: Player collision bottom is at local y=9 (pos.y=-1, half_h=10)
+	# Ghoul collision bottom is at local y=0 (pos.y=-12, half_h=12)
+	# Shift ghoul collision up by 9px so bottom = 9, matching player
+	col_shape.position.y = -12 + 9  # = -3
+	# Also shift hitbox and attack area to match
+	$Hitbox/CollisionShape2D.position.y = -13 + 9  # = -4
+	$AttackArea/CollisionShape2D.position.y = -12 + 9  # = -3
+	# Shift sprite to match new collision alignment
+	animated_sprite.position.y = -16 + 9  # = -7
+
+	var new_col_bottom: float = col_shape.position.y + col_rect.size.y / 2.0
+	print("Ghoul AFTER fix: CollisionShape2D pos=", col_shape.position, " bottom_y=", new_col_bottom)
+	print("  AnimatedSprite2D pos=", animated_sprite.position)
+
 	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
 	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
 	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
@@ -174,8 +195,8 @@ func _physics_process(delta: float) -> void:
 			if _rim_material:
 				reveal_tween.tween_method(func(val: float) -> void:
 					if _rim_material:
-						_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
-				, 0.0, 0.6, 0.4)
+						_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, val))
+				, 0.0, 0.4, 0.4)
 
 	# Tick cooldowns
 	attack_cooldown_timer = max(attack_cooldown_timer - delta, 0.0)
@@ -618,8 +639,8 @@ func _create_rim_light() -> void:
 	shader.code = """
 shader_type canvas_item;
 
-uniform vec4 rim_color : source_color = vec4(0.4, 0.1, 0.6, 0.6);
-uniform float rim_width : hint_range(0.0, 5.0) = 1.0;
+uniform vec4 rim_color : source_color = vec4(0.28, 0.07, 0.42, 0.4);
+uniform float rim_width : hint_range(0.0, 5.0) = 0.8;
 
 void fragment() {
 	vec2 size = TEXTURE_PIXEL_SIZE * rim_width;
@@ -645,8 +666,8 @@ void fragment() {
 """
 	_rim_material = ShaderMaterial.new()
 	_rim_material.shader = shader
-	_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, 0.0))
-	_rim_material.set_shader_parameter("rim_width", 1.0)
+	_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, 0.0))
+	_rim_material.set_shader_parameter("rim_width", 0.8)
 	animated_sprite.material = _rim_material
 	print("Ghoul rim light shader applied")
 
@@ -679,8 +700,8 @@ func _attack_telegraph_flare() -> void:
 	if _rim_material:
 		_telegraph_tween.tween_method(func(val: float) -> void:
 			if _rim_material:
-				_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
-		, 0.6, 1.0, 0.2)
+				_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, val))
+		, 0.4, 1.0, 0.2)
 	print("Ghoul attack telegraph — eyes flare")
 
 
@@ -693,8 +714,8 @@ func _attack_telegraph_dim() -> void:
 	if _rim_material:
 		_telegraph_tween.tween_method(func(val: float) -> void:
 			if _rim_material:
-				_rim_material.set_shader_parameter("rim_color", Color(0.4, 0.1, 0.6, val))
-		, 1.0, 0.6, 0.3)
+				_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, val))
+		, 1.0, 0.4, 0.3)
 	print("Ghoul attack telegraph — eyes dim")
 
 
