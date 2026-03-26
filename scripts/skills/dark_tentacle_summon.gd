@@ -29,7 +29,7 @@ func _init():
 	animation_speed = 5.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(90, 25)
+	spawn_offset = Vector2(90, -10)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
