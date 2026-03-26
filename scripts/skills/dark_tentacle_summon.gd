@@ -25,10 +25,10 @@ func _init():
 	summon_name = "Dark Tentacle"
 	texture_path = "res://assets/effects/combat/summons/darkTentacles/Electric_tentacle-Sheet.png"
 	frame_size = Vector2(SHEET_FRAME_W, SHEET_FRAME_H)
-	animation_speed = 10.0
+	animation_speed = 5.0
 	damage = 1
 	knockback_force = 0.0
-	spawn_offset = Vector2(65, 0)
+	spawn_offset = Vector2(65, 5)
 	hitbox_start_frame = 0
 	hitbox_end_frame = 0
 	match_environment_color = false
