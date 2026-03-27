@@ -89,13 +89,10 @@ const MAX_HEALTH := 3
 var current_health: int = MAX_HEALTH
 
 # Raw input tracking
-var _key_left: bool = false
-var _key_right: bool = false
 var _key_jump_just: bool = false
 var _key_jump_released: bool = false
 var _key_dash_just: bool = false
 var _key_attack_just: bool = false
-var _key_shield_held: bool = false
 var _key_shockwave_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -112,7 +109,75 @@ var _dash_ghost_timer: float = 0.0
 const DASH_GHOST_INTERVAL := 0.03
 
 
+func _register_input_actions() -> void:
+	var actions := {
+		"move_left": [],
+		"move_right": [],
+		"jump": [],
+		"dash": [],
+		"attack": [],
+		"shield": [],
+		"shockwave": [],
+		"switch_attack": [],
+		"switch_summon": [],
+	}
+
+	# Keyboard events
+	var key_map := {
+		"move_left": KEY_A,
+		"move_right": KEY_D,
+		"jump": KEY_SPACE,
+		"dash": KEY_SHIFT,
+		"attack": KEY_J,
+		"shield": KEY_K,
+		"shockwave": KEY_L,
+		"switch_attack": KEY_TAB,
+		"switch_summon": KEY_QUOTELEFT,
+	}
+	for action_name in key_map:
+		var ev := InputEventKey.new()
+		ev.physical_keycode = key_map[action_name]
+		actions[action_name].append(ev)
+
+	# Joypad button events
+	var btn_map := {
+		"jump": JOY_BUTTON_A,
+		"dash": JOY_BUTTON_RIGHT_SHOULDER,
+		"attack": JOY_BUTTON_X,
+		"shield": JOY_BUTTON_Y,
+		"shockwave": JOY_BUTTON_B,
+		"switch_attack": JOY_BUTTON_DPAD_LEFT,
+		"switch_summon": JOY_BUTTON_DPAD_RIGHT,
+	}
+	for action_name in btn_map:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = btn_map[action_name]
+		actions[action_name].append(ev)
+
+	# Joypad axis events (left stick)
+	var axis_left := InputEventJoypadMotion.new()
+	axis_left.axis = JOY_AXIS_LEFT_X
+	axis_left.axis_value = -1.0
+	actions["move_left"].append(axis_left)
+
+	var axis_right := InputEventJoypadMotion.new()
+	axis_right.axis = JOY_AXIS_LEFT_X
+	axis_right.axis_value = 1.0
+	actions["move_right"].append(axis_right)
+
+	# Register all actions
+	for action_name in actions:
+		if not InputMap.has_action(action_name):
+			InputMap.add_action(action_name)
+			for ev in actions[action_name]:
+				InputMap.action_add_event(action_name, ev)
+
+	print("Input actions registered: move_left, move_right, jump, dash, attack, shield, shockwave, switch_attack, switch_summon")
+	print("Controller support enabled")
+
+
 func _ready() -> void:
+	_register_input_actions()
 	add_to_group("player")
 	# Player on layer 1, collides with ground (layers 1+3) but NOT enemies (layer 2)
 	set_collision_layer_value(1, true)
@@ -694,53 +759,33 @@ func _on_dash_dust_finished() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# Mouse buttons — attack / shield / shockwave
+	# Mouse buttons — attack / shield / shockwave (kept for mouse support)
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
 			_key_attack_just = true
-		elif mb.button_index == MOUSE_BUTTON_RIGHT:
-			_key_shield_held = mb.pressed
 		elif mb.button_index == MOUSE_BUTTON_MIDDLE and mb.pressed:
 			_key_shockwave_just = true
 		return
 
-	if not (event is InputEventKey):
-		return
-	var key_event := event as InputEventKey
-	var code := key_event.physical_keycode
-
-	match code:
-		KEY_A:
-			_key_left = key_event.pressed
-		KEY_D:
-			_key_right = key_event.pressed
-		KEY_SPACE:
-			if key_event.pressed and not key_event.echo:
-				_key_jump_just = true
-			elif not key_event.pressed:
-				_key_jump_released = true
-		KEY_SHIFT:
-			if key_event.pressed and not key_event.echo:
-				_key_dash_just = true
-		KEY_J:
-			if key_event.pressed and not key_event.echo:
-				_key_attack_just = true
-		KEY_K:
-			_key_shield_held = key_event.pressed
-		KEY_L:
-			if key_event.pressed and not key_event.echo:
-				_key_shockwave_just = true
-		KEY_TAB:
-			if key_event.pressed and not key_event.echo:
-				current_attack_index = (current_attack_index + 1) % available_attacks.size()
-				_update_debug_label()
-				print("Switched to attack: ", available_attacks[current_attack_index])
-		KEY_QUOTELEFT:
-			if key_event.pressed and not key_event.echo:
-				current_summon_index = (current_summon_index + 1) % available_summons.size()
-				_update_debug_label()
-				print("Switched to summon: ", available_summons[current_summon_index])
+	if event.is_action_pressed("attack"):
+		_key_attack_just = true
+	if event.is_action_pressed("jump"):
+		_key_jump_just = true
+	if event.is_action_released("jump"):
+		_key_jump_released = true
+	if event.is_action_pressed("dash"):
+		_key_dash_just = true
+	if event.is_action_pressed("shockwave"):
+		_key_shockwave_just = true
+	if event.is_action_pressed("switch_attack"):
+		current_attack_index = (current_attack_index + 1) % available_attacks.size()
+		_update_debug_label()
+		print("Switched to attack: ", available_attacks[current_attack_index], " (device: ", event.device, ")")
+	if event.is_action_pressed("switch_summon"):
+		current_summon_index = (current_summon_index + 1) % available_summons.size()
+		_update_debug_label()
+		print("Switched to summon: ", available_summons[current_summon_index], " (device: ", event.device, ")")
 
 
 func _on_animation_finished() -> void:
@@ -826,7 +871,7 @@ func _physics_process(delta: float) -> void:
 	var jump_just_released := _key_jump_released
 	var dash_just_pressed := _key_dash_just
 	var attack_just_pressed := _key_attack_just
-	var shield_held := _key_shield_held
+	var shield_held := Input.is_action_pressed("shield") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
 	var shockwave_just_pressed := _key_shockwave_just
 	_key_jump_just = false
 	_key_jump_released = false
@@ -994,9 +1039,9 @@ func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 	var on_wall := is_on_wall()
 	var input_dir := 0.0
-	if _key_right:
+	if Input.is_action_pressed("move_right"):
 		input_dir += 1.0
-	if _key_left:
+	if Input.is_action_pressed("move_left"):
 		input_dir -= 1.0
 	var wall_normal := get_wall_normal() if on_wall else Vector2.ZERO
 
