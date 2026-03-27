@@ -110,6 +110,17 @@ const DASH_GHOST_INTERVAL := 0.03
 
 
 func _register_input_actions() -> void:
+	var action_names := ["move_left", "move_right", "jump", "dash", "attack", "shield", "shockwave", "switch_attack", "switch_summon"]
+
+	# Diagnostic: print existing actions before we touch anything
+	for action_name in action_names:
+		if InputMap.has_action(action_name):
+			print("ACTION EXISTS: ", action_name, " events=", InputMap.action_get_events(action_name).size())
+			for ev in InputMap.action_get_events(action_name):
+				print("  -> ", ev.get_class(), " ", ev)
+		else:
+			print("ACTION MISSING: ", action_name)
+
 	var actions := {
 		"move_left": [],
 		"move_right": [],
@@ -181,16 +192,25 @@ func _register_input_actions() -> void:
 	rt.axis_value = 0.5
 	actions["dash"].append(rt)
 
-	# Register all actions
+	# Erase and recreate all actions to ensure full control
 	for action_name in actions:
-		if not InputMap.has_action(action_name):
-			InputMap.add_action(action_name)
-			for ev in actions[action_name]:
-				InputMap.action_add_event(action_name, ev)
+		if InputMap.has_action(action_name):
+			InputMap.erase_action(action_name)
+		InputMap.add_action(action_name)
+		for ev in actions[action_name]:
+			InputMap.action_add_event(action_name, ev)
 
 	# Set deadzone for stick movement
 	InputMap.action_set_deadzone("move_left", 0.2)
 	InputMap.action_set_deadzone("move_right", 0.2)
+
+	# Verify move actions have all events
+	print("move_left events: ", InputMap.action_get_events("move_left").size())
+	print("move_right events: ", InputMap.action_get_events("move_right").size())
+	for ev in InputMap.action_get_events("move_left"):
+		print("  move_left -> ", ev.get_class())
+	for ev in InputMap.action_get_events("move_right"):
+		print("  move_right -> ", ev.get_class())
 
 	print("INPUT MAP:")
 	print("  move_left = A + LeftStick + DPadLeft")
