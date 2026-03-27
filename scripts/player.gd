@@ -142,19 +142,29 @@ func _register_input_actions() -> void:
 	# Joypad button events
 	var btn_map := {
 		"jump": JOY_BUTTON_A,
-		"dash": JOY_BUTTON_RIGHT_SHOULDER,
 		"attack": JOY_BUTTON_X,
 		"shield": JOY_BUTTON_Y,
 		"shockwave": JOY_BUTTON_B,
-		"switch_attack": JOY_BUTTON_DPAD_LEFT,
-		"switch_summon": JOY_BUTTON_DPAD_RIGHT,
+		"switch_attack": JOY_BUTTON_LEFT_SHOULDER,
+		"switch_summon": JOY_BUTTON_RIGHT_SHOULDER,
 	}
 	for action_name in btn_map:
 		var ev := InputEventJoypadButton.new()
 		ev.button_index = btn_map[action_name]
 		actions[action_name].append(ev)
 
-	# Joypad axis events (left stick)
+	# D-pad movement + jump
+	var dpad_map := {
+		"move_left": JOY_BUTTON_DPAD_LEFT,
+		"move_right": JOY_BUTTON_DPAD_RIGHT,
+		"jump": JOY_BUTTON_DPAD_UP,
+	}
+	for action_name in dpad_map:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = dpad_map[action_name]
+		actions[action_name].append(ev)
+
+	# Left stick axes
 	var axis_left := InputEventJoypadMotion.new()
 	axis_left.axis = JOY_AXIS_LEFT_X
 	axis_left.axis_value = -1.0
@@ -165,6 +175,12 @@ func _register_input_actions() -> void:
 	axis_right.axis_value = 1.0
 	actions["move_right"].append(axis_right)
 
+	# Dash on right trigger
+	var rt := InputEventJoypadMotion.new()
+	rt.axis = JOY_AXIS_TRIGGER_RIGHT
+	rt.axis_value = 0.5
+	actions["dash"].append(rt)
+
 	# Register all actions
 	for action_name in actions:
 		if not InputMap.has_action(action_name):
@@ -172,8 +188,20 @@ func _register_input_actions() -> void:
 			for ev in actions[action_name]:
 				InputMap.action_add_event(action_name, ev)
 
-	print("Input actions registered: move_left, move_right, jump, dash, attack, shield, shockwave, switch_attack, switch_summon")
-	print("Controller support enabled")
+	# Set deadzone for stick movement
+	InputMap.action_set_deadzone("move_left", 0.2)
+	InputMap.action_set_deadzone("move_right", 0.2)
+
+	print("INPUT MAP:")
+	print("  move_left = A + LeftStick + DPadLeft")
+	print("  move_right = D + LeftStick + DPadRight")
+	print("  jump = Space + A_Button + DPadUp")
+	print("  attack = J + X_Button")
+	print("  shield = K + Y_Button")
+	print("  shockwave = L + B_Button")
+	print("  dash = Shift + RT")
+	print("  switch_attack = Tab + L1")
+	print("  switch_summon = ` + R1")
 
 
 func _ready() -> void:
