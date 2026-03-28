@@ -8,7 +8,16 @@ static var ROOMS: Array[Dictionary] = [
 		"spawn": Vector2(100, 631),
 		"fall_respawn_y": 820,
 		"solids": [
-			{"x": 0, "y": 640, "w": 6600, "h": 80},
+			{"x": 0, "y": 640, "w": 2500, "h": 80},
+			# Floating platforms for combat arena
+			{"x": 2600, "y": 540, "w": 256, "h": 16},   # Platform 1: 100px up, 4 tiles
+			{"x": 2950, "y": 440, "w": 192, "h": 16},   # Platform 2: 200px up, 3 tiles
+			{"x": 3250, "y": 560, "w": 320, "h": 16},   # Platform 3: 80px up, 5 tiles
+			{"x": 3650, "y": 390, "w": 192, "h": 16},   # Platform 4: 250px up, highest
+			# Valley section: ground drops 100px
+			{"x": 3950, "y": 740, "w": 384, "h": 80},   # Valley floor, 6 tiles wide
+			# Resume normal ground after valley
+			{"x": 4400, "y": 640, "w": 2200, "h": 80},
 		],
 		"moving_platforms": [],
 		"hazards": [],

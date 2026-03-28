@@ -140,8 +140,8 @@ func _setup_room1_props() -> void:
 	wall.name = "zone_1_boundary"
 	wall.set_collision_layer_value(1, true)
 	wall.set_collision_layer_value(3, true)
-	wall.position = Vector2(2400, 360)  # centered vertically in 720px room
-	print("Zone 1 boundary: 900 -> 2400")
+	wall.position = Vector2(4800, 360)  # centered vertically in 720px room
+	print("Zone 1 boundary: 900 -> 4800")
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(10, 720)
 	var col := CollisionShape2D.new()
@@ -154,12 +154,23 @@ func _setup_room1_props() -> void:
 
 	# Ghouls
 	var ghoul_scene := load("res://scenes/enemies/Ghoul.tscn") as PackedScene
-	var ghoul_positions := [Vector2(800, 631), Vector2(1400, 631), Vector2(2000, 631)]
+	var ghoul_positions := [
+		Vector2(800, 631), Vector2(1400, 631), Vector2(2000, 631),   # Original 3
+		Vector2(2700, 531),   # Platform 1
+		Vector2(3350, 551),   # Platform 3
+		Vector2(3720, 381),   # Platform 4
+		Vector2(4050, 731),   # Valley left
+		Vector2(4200, 731),   # Valley right
+	]
 	for pos in ghoul_positions:
 		var ghoul := ghoul_scene.instantiate()
 		ghoul.global_position = pos
 		room_geometry.add_child(ghoul)
 	print("Spawned ", ghoul_positions.size(), " ghouls")
+	print("Level extended: 5 platforms, 5 new ghouls, valley section added")
+	print("  Platform 1: (2600, 540) 256px  |  Platform 2: (2950, 440) 192px")
+	print("  Platform 3: (3250, 560) 320px  |  Platform 4: (3650, 390) 192px")
+	print("  Valley: (3950, 740) 384px")
 
 
 func _create_campfire(pos: Vector2) -> void:
