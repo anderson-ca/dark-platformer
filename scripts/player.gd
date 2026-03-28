@@ -87,7 +87,8 @@ const SHOCKWAVE_DAMAGE := 2
 const SHOCKWAVE_STUN := 0.5
 const MAX_HEALTH := 3
 var _projectile_cooldown: float = 0.0
-const PROJECTILE_COOLDOWN := 0.35
+const PROJECTILE_COOLDOWN := 0.5
+const MAX_PROJECTILES := 3
 var current_health: int = MAX_HEALTH
 
 # Raw input tracking
@@ -602,11 +603,16 @@ func _spawn_projectile() -> void:
 		_:
 			return
 
+	if get_tree().get_nodes_in_group("projectiles").size() >= MAX_PROJECTILES:
+		print("Max projectiles on screen")
+		return
+
 	var projectile := projectile_scene.instantiate()
 	var dir: int = -1 if animated_sprite.flip_h else 1
 	projectile.direction = dir
 	projectile.global_position = global_position + Vector2(dir * 30, -5)
 	projectile.muzzle_spawn_position = global_position + Vector2(dir * 16, 0)
+	projectile.add_to_group("projectiles")
 	get_parent().add_child(projectile)
 	print("Spawned projectile: ", attack_name, " at: ", projectile.global_position)
 
@@ -1050,6 +1056,8 @@ func _physics_process(delta: float) -> void:
 		_spawn_projectile()
 		_flash_attack_glow()
 		_projectile_cooldown = PROJECTILE_COOLDOWN
+		# Brief backward recoil (~14% slowdown at full speed)
+		velocity.x -= facing * 30.0
 		if is_on_floor():
 			print("Moving attack — projectile fired (run_attack)")
 		else:
@@ -1145,6 +1153,7 @@ func _physics_process(delta: float) -> void:
 	if _was_dashing and not _is_taking_hit:
 		is_invincible = false
 		animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		print("DASH ENDED: invincible=false")
 
 	# --- Dash input ---
 	if dash_just_pressed and dash_cooldown_timer <= 0.0:
@@ -1155,7 +1164,7 @@ func _physics_process(delta: float) -> void:
 			is_invincible = true
 			_dash_ghost_timer = 0.0
 			animated_sprite.modulate = Color(0.9, 0.6, 1.0, 1.0)
-			print("Dash started - purple tint applied")
+			print("DASH: invincible=true")
 			if not on_floor:
 				has_air_dash = false
 			velocity.x = dash_direction * DASH_SPEED

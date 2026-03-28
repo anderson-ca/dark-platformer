@@ -93,6 +93,12 @@ func _ready() -> void:
 	if _rim_material:
 		print("Ghoul rim shader: rim_color=", _rim_material.get_shader_parameter("rim_color"), " rim_width=", _rim_material.get_shader_parameter("rim_width"))
 
+	# Verify hitbox size and collision layer
+	var hitbox_shape := $Hitbox/CollisionShape2D
+	var hitbox_rect := hitbox_shape.shape as RectangleShape2D
+	var hitbox_area := $Hitbox as Area2D
+	print("Ghoul hitbox: size=", hitbox_rect.size, " pos=", hitbox_shape.position, " collision_layer=", hitbox_area.collision_layer)
+
 	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
 	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
 	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
