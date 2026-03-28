@@ -19,7 +19,7 @@ func _init() -> void:
 	environment_base_color = Color(0.196, 0.184, 0.157)
 
 	magical_aura_enabled = true
-	aura_color = Color(1.0, 0.184, 0.227, 1.0)  # #FF2F3A
+	aura_color = Color(1.0, 0.184, 0.227, 0.4)  # #FF2F3A, subtle
 	ghost_interval = 0.05
 
 

@@ -56,14 +56,14 @@ func _ready() -> void:
 
 	var light := PointLight2D.new()
 	light.name = "ProjectileLight"
-	light.color = Color(0.6, 0.2, 1.0)
-	light.energy = 1.5
+	light.color = Color(0.7, 0.3, 1.0)
+	light.energy = 3.0
 	light.texture = light_tex
-	light.texture_scale = 0.8
+	light.texture_scale = 1.3
 	light.shadow_enabled = false
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
-	print("Projectile light: purple glow, energy=1.5, scale=0.8")
+	print("Projectile light: energy=3.0, scale=1.3, color=bright purple")
 	print("Projectile sprite scaled to 70% (0.7)")
 
 	area_entered.connect(_on_area_entered)

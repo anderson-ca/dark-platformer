@@ -76,6 +76,8 @@ const SHIELD_ZONE_WIDTH := 10.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var _shockwave_applied: bool = false
+var _shockwave_outline_applied: bool = false
+var _original_sprite_material: Material = null
 var is_dead: bool = false
 var is_invincible: bool = false
 var _is_taking_hit: bool = false
@@ -870,6 +872,9 @@ func _on_animation_finished() -> void:
 	elif animated_sprite.animation == "shockwave":
 		is_shockwaving = false
 		is_invincible = false
+		_shockwave_outline_applied = false
+		animated_sprite.material = _original_sprite_material
+		_original_sprite_material = null
 
 
 func reset_abilities() -> void:
@@ -955,6 +960,7 @@ func _physics_process(delta: float) -> void:
 	if shockwave_just_pressed and is_on_floor() and not is_shockwaving and shockwave_cooldown_timer <= 0.0:
 		is_shockwaving = true
 		_shockwave_applied = false
+		_shockwave_outline_applied = false
 		is_invincible = true
 		is_attacking = false
 		is_shielding = false
@@ -969,6 +975,37 @@ func _physics_process(delta: float) -> void:
 		if not _shockwave_applied and animated_sprite.frame >= 6:
 			_shockwave_applied = true
 			_apply_shockwave_effect()
+		# Apply red outline at blast frames
+		if not _shockwave_outline_applied and animated_sprite.frame >= 6:
+			_shockwave_outline_applied = true
+			_original_sprite_material = animated_sprite.material
+			var shader := Shader.new()
+			shader.code = """
+shader_type canvas_item;
+uniform vec4 outline_color : source_color = vec4(0.8, 0.1, 0.1, 0.6);
+uniform float outline_width : hint_range(0.0, 3.0) = 1.0;
+
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	if (col.a < 0.1) {
+		float a = 0.0;
+		a = max(a, texture(TEXTURE, UV + vec2(outline_width * TEXTURE_PIXEL_SIZE.x, 0)).a);
+		a = max(a, texture(TEXTURE, UV - vec2(outline_width * TEXTURE_PIXEL_SIZE.x, 0)).a);
+		a = max(a, texture(TEXTURE, UV + vec2(0, outline_width * TEXTURE_PIXEL_SIZE.y)).a);
+		a = max(a, texture(TEXTURE, UV - vec2(0, outline_width * TEXTURE_PIXEL_SIZE.y)).a);
+		if (a > 0.1) {
+			col = outline_color;
+		}
+	}
+	COLOR = col;
+}
+"""
+			var mat := ShaderMaterial.new()
+			mat.shader = shader
+			mat.set_shader_parameter("outline_color", Color(0.8, 0.1, 0.1, 0.6))
+			mat.set_shader_parameter("outline_width", 1.0)
+			animated_sprite.material = mat
+			print("Shockwave outline: red, width=1.0, alpha=0.6")
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta

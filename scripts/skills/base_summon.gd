@@ -212,7 +212,8 @@ void fragment() {
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("outline_color", aura_color)
-	mat.set_shader_parameter("outline_width", 1.2)
+	mat.set_shader_parameter("outline_width", 0.8)
+	print("Summon outline: color=", aura_color, " width=0.8 (was 1.2)")
 	outline.material = mat
 
 	add_child(outline)
