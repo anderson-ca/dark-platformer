@@ -68,6 +68,8 @@ const SUMMON_CHANNEL_TIME: float = 1.0
 var summon_channel_timer: float = 0.0
 var is_channeling_summon: bool = false
 var summon_triggered_this_channel: bool = false
+var summon_global_cooldown: float = 0.0
+const SUMMON_GLOBAL_COOLDOWN := 4.0
 var _attack_label: Label
 var is_shielding: bool = false
 var _attack_hitbox: Area2D
@@ -76,7 +78,6 @@ const SHIELD_ZONE_WIDTH := 10.0
 var _shield_phase: String = ""  # "up", "hold", "down"
 var is_shockwaving: bool = false
 var _shockwave_applied: bool = false
-var _shockwave_outline_applied: bool = false
 var _original_sprite_material: Material = null
 var is_dead: bool = false
 var is_invincible: bool = false
@@ -422,7 +423,10 @@ func _setup_attack_label() -> void:
 
 func _update_debug_label() -> void:
 	if _attack_label:
-		_attack_label.text = "J: " + available_attacks[current_attack_index] + " | K: " + available_summons[current_summon_index]
+		var txt: String = "J: " + available_attacks[current_attack_index] + " | K: " + available_summons[current_summon_index]
+		if summon_global_cooldown > 0.0:
+			txt += " (CD: " + str(snapped(summon_global_cooldown, 0.1)) + "s)"
+		_attack_label.text = txt
 
 
 func _repel_enemies_from_shield() -> void:
@@ -872,7 +876,6 @@ func _on_animation_finished() -> void:
 	elif animated_sprite.animation == "shockwave":
 		is_shockwaving = false
 		is_invincible = false
-		_shockwave_outline_applied = false
 		animated_sprite.material = _original_sprite_material
 		_original_sprite_material = null
 
@@ -945,6 +948,10 @@ func _physics_process(delta: float) -> void:
 	# Timers
 	shockwave_cooldown_timer = max(shockwave_cooldown_timer - delta, 0.0)
 	_projectile_cooldown = max(_projectile_cooldown - delta, 0.0)
+	var _prev_summon_cd := summon_global_cooldown
+	summon_global_cooldown = max(summon_global_cooldown - delta, 0.0)
+	if _prev_summon_cd > 0.0 and summon_global_cooldown <= 0.0:
+		print("Summon cooldown expired — ready")
 	if _combo_window:
 		_combo_timer -= delta
 		if _combo_timer <= 0.0:
@@ -960,7 +967,6 @@ func _physics_process(delta: float) -> void:
 	if shockwave_just_pressed and is_on_floor() and not is_shockwaving and shockwave_cooldown_timer <= 0.0:
 		is_shockwaving = true
 		_shockwave_applied = false
-		_shockwave_outline_applied = false
 		is_invincible = true
 		is_attacking = false
 		is_shielding = false
@@ -969,18 +975,10 @@ func _physics_process(delta: float) -> void:
 		shockwave_cooldown_timer = SHOCKWAVE_COOLDOWN
 		velocity.x = 0.0
 		animated_sprite.play("shockwave")
-
-	if is_shockwaving:
-		# Apply effect at frame 6 (when blast visual appears)
-		if not _shockwave_applied and animated_sprite.frame >= 6:
-			_shockwave_applied = true
-			_apply_shockwave_effect()
-		# Apply red outline at blast frames
-		if not _shockwave_outline_applied and animated_sprite.frame >= 6:
-			_shockwave_outline_applied = true
-			_original_sprite_material = animated_sprite.material
-			var shader := Shader.new()
-			shader.code = """
+		# Apply red outline immediately so buildup frames are visible
+		_original_sprite_material = animated_sprite.material
+		var _sw_shader := Shader.new()
+		_sw_shader.code = """
 shader_type canvas_item;
 uniform vec4 outline_color : source_color = vec4(0.8, 0.1, 0.1, 0.6);
 uniform float outline_width : hint_range(0.0, 3.0) = 1.0;
@@ -1000,12 +998,18 @@ void fragment() {
 	COLOR = col;
 }
 """
-			var mat := ShaderMaterial.new()
-			mat.shader = shader
-			mat.set_shader_parameter("outline_color", Color(0.8, 0.1, 0.1, 0.6))
-			mat.set_shader_parameter("outline_width", 1.0)
-			animated_sprite.material = mat
-			print("Shockwave outline: red, width=1.0, alpha=0.6")
+		var _sw_mat := ShaderMaterial.new()
+		_sw_mat.shader = _sw_shader
+		_sw_mat.set_shader_parameter("outline_color", Color(0.8, 0.1, 0.1, 0.6))
+		_sw_mat.set_shader_parameter("outline_width", 1.0)
+		animated_sprite.material = _sw_mat
+		print("Shockwave outline: applied at frame 0")
+
+	if is_shockwaving:
+		# Apply effect at frame 6 (when blast visual appears)
+		if not _shockwave_applied and animated_sprite.frame >= 6:
+			_shockwave_applied = true
+			_apply_shockwave_effect()
 		velocity.x = move_toward(velocity.x, 0.0, GROUND_DRAG * delta)
 		if not is_on_floor():
 			velocity.y += GRAVITY * delta
@@ -1027,11 +1031,15 @@ void fragment() {
 			_shield_zone.monitoring = true
 			print("Started channeling summon...")
 		elif is_channeling_summon and not summon_triggered_this_channel:
-			summon_channel_timer += delta
-			if summon_channel_timer >= SUMMON_CHANNEL_TIME:
-				_spawn_summon()
-				summon_triggered_this_channel = true
-				print("SUMMON COMPLETE!")
+			if summon_global_cooldown > 0.0:
+				print("Summon cooldown: ", snapped(summon_global_cooldown, 0.1), "s remaining")
+			else:
+				summon_channel_timer += delta
+				if summon_channel_timer >= SUMMON_CHANNEL_TIME:
+					_spawn_summon()
+					summon_triggered_this_channel = true
+					summon_global_cooldown = SUMMON_GLOBAL_COOLDOWN
+					print("SUMMON COMPLETE! Cooldown: ", SUMMON_GLOBAL_COOLDOWN, "s")
 	elif is_shielding and not shield_held:
 		if not summon_triggered_this_channel:
 			print("Channel cancelled - released too early")

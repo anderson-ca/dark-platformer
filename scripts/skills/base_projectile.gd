@@ -37,6 +37,7 @@ func _ready() -> void:
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	animated_sprite.scale = Vector2(0.7, 0.7) * animated_sprite.scale
+	animated_sprite.modulate = Color(1.0, 0.4, 0.3)
 	animated_sprite.play("bullet")
 
 	collision_shape.scale = Vector2(0.7, 0.7)
@@ -56,14 +57,14 @@ func _ready() -> void:
 
 	var light := PointLight2D.new()
 	light.name = "ProjectileLight"
-	light.color = Color(0.7, 0.3, 1.0)
+	light.color = Color(1.0, 0.2, 0.15)
 	light.energy = 3.0
 	light.texture = light_tex
 	light.texture_scale = 1.3
 	light.shadow_enabled = false
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
-	print("Projectile light: energy=3.0, scale=1.3, color=bright purple")
+	print("Projectile color: dark red (light + sprite + muzzle + hit)")
 	print("Projectile sprite scaled to 70% (0.7)")
 
 	area_entered.connect(_on_area_entered)
@@ -127,6 +128,7 @@ func _spawn_muzzle_effect() -> void:
 	muzzle.sprite_frames = sf
 	muzzle.flip_h = (direction == -1)
 	muzzle.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	muzzle.modulate = Color(1.0, 0.4, 0.3)
 
 	# Spawn at hand position if set, otherwise at projectile position
 	get_parent().add_child(muzzle)
@@ -162,6 +164,7 @@ func _spawn_hit_effect() -> void:
 	var hit := AnimatedSprite2D.new()
 	hit.sprite_frames = sf
 	hit.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	hit.modulate = Color(1.0, 0.4, 0.3)
 
 	get_parent().add_child(hit)
 	hit.global_position = global_position
