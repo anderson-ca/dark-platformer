@@ -154,7 +154,7 @@ func _on_area_entered(area: Area2D) -> void:
 		_spawn_hit_effect()
 		_on_hit(enemy)
 
-		print(projectile_name, " hit enemy: ", enemy.name)
+		print(projectile_name, " hit enemy — destroyed")
 		queue_free()
 
 
@@ -164,4 +164,5 @@ func _on_hit(_enemy: Node) -> void:
 
 
 func _on_lifetime_expired() -> void:
-	queue_free()
+	if is_inside_tree():
+		queue_free()

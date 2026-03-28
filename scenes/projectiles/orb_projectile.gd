@@ -8,6 +8,7 @@ const ORB_COLS := 5
 const ORB_FRAMES := 8
 
 var direction: int = 1
+var hit_enemies: Array = []
 var muzzle_spawn_position: Vector2 = Vector2.ZERO
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -58,7 +59,6 @@ func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 
 	# Lifetime limit — destroy if no hit after 1.5s
-	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().create_timer(1.5).timeout.connect(_on_lifetime_expired)
 
 	print("Orb glow and outline initialized, direction: ", direction)
@@ -84,19 +84,15 @@ func _physics_process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	var enemy := area.get_parent()
-	if enemy and enemy.has_method("take_damage"):
+	if enemy and enemy.has_method("take_damage") and enemy not in hit_enemies:
+		hit_enemies.append(enemy)
+
 		if enemy.has_method("take_damage_with_knockback"):
 			enemy.take_damage_with_knockback(DAMAGE, Vector2(direction * KNOCKBACK_FORCE, 0))
 		else:
 			enemy.take_damage(global_position)
 
-		# Micro hitstop — brief pause for impact feel
-		get_tree().paused = true
-		get_tree().create_timer(0.02, true, false, true).timeout.connect(func():
-			get_tree().paused = false
-		)
-
-		print("Orb hit enemy — destroyed, hitstop 0.02s")
+		print("Orb hit enemy — destroyed")
 		queue_free()
 
 
@@ -105,5 +101,6 @@ func _on_animation_finished() -> void:
 
 
 func _on_lifetime_expired() -> void:
-	print("Orb expired — lifetime reached")
-	queue_free()
+	if is_inside_tree():
+		print("Orb expired — lifetime reached")
+		queue_free()
