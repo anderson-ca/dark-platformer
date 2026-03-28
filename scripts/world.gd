@@ -87,9 +87,12 @@ func load_room(index: int) -> void:
 	# Build solids
 	for s in room.solids:
 		_create_solid(s.x, s.y, s.w, s.h)
-		# Add visual ground tiles for wide ground solids
-		if s.w > 200:
+		# Add visual ground tiles for thick ground solids only
+		if s.w > 200 and s.h >= 80:
 			_create_ground_tiles(s.x, s.y, s.w)
+		# Add single-row surface tiles for thin platforms
+		elif s.w > 100 and s.h < 80:
+			_create_platform_tiles(s.x, s.y, s.w)
 
 	# Build moving platforms
 	for mp in room.moving_platforms:
@@ -148,8 +151,8 @@ func _setup_room1_props() -> void:
 	wall.name = "zone_1_boundary"
 	wall.set_collision_layer_value(1, true)
 	wall.set_collision_layer_value(3, true)
-	wall.position = Vector2(4600, 360)  # centered vertically in 720px room
-	print("Zone 1 boundary: 900 -> 4600")
+	wall.position = Vector2(5600, 360)  # centered vertically in 720px room
+	print("Zone 1 boundary: 900 -> 5600")
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(10, 720)
 	var col := CollisionShape2D.new()
@@ -162,25 +165,26 @@ func _setup_room1_props() -> void:
 
 	# Ghouls — Y = platform_top_y - 9 (ghoul collision bottom is 9px below origin)
 	var ghoul_scene := load("res://scenes/enemies/Ghoul.tscn") as PackedScene
-	var ghoul_positions := [
-		Vector2(800, 631),    # Original ground ghoul
-		Vector2(1400, 631),   # Original ground ghoul
-		Vector2(2000, 631),   # Original ground ghoul
-		Vector2(3340, 551),   # Platform A1 center (y=560-9)
-		Vector2(3560, 371),   # Platform A3 center (y=380-9)
-		Vector2(878, 511),    # Platform B1 center (y=520-9)
-		Vector2(3980, 731),   # Valley left (y=740-9)
-		Vector2(4130, 731),   # Valley right (y=740-9)
+	var ghoul_configs := [
+		{"pos": Vector2(600, 631), "patrol_dir": 1.0, "speed_offset": 0},
+		{"pos": Vector2(1400, 631), "patrol_dir": -1.0, "speed_offset": 8},
+		{"pos": Vector2(2150, 591), "patrol_dir": 1.0, "speed_offset": -5},
+		{"pos": Vector2(2600, 631), "patrol_dir": -1.0, "speed_offset": 12},
+		{"pos": Vector2(3280, 571), "patrol_dir": 1.0, "speed_offset": -8},
+		{"pos": Vector2(3600, 431), "patrol_dir": -1.0, "speed_offset": 5},
+		{"pos": Vector2(3800, 711), "patrol_dir": 1.0, "speed_offset": 0},
+		{"pos": Vector2(3950, 711), "patrol_dir": -1.0, "speed_offset": 10},
+		{"pos": Vector2(4700, 631), "patrol_dir": 1.0, "speed_offset": -6},
 	]
-	for pos in ghoul_positions:
+	for config in ghoul_configs:
 		var ghoul := ghoul_scene.instantiate()
-		ghoul.global_position = pos
+		ghoul.global_position = config["pos"]
+		ghoul.set_meta("initial_patrol_dir", config["patrol_dir"])
+		ghoul.set_meta("patrol_speed_offset", config["speed_offset"])
 		room_geometry.add_child(ghoul)
-	print("Spawned ", ghoul_positions.size(), " ghouls")
-	print("Level: 5 platforms (A1-A3, B1-B2), valley, ramp steps")
-	print("  A1: (3180, 560) 320px | A2: (3300, 470) 256px | A3: (3400, 380) 320px")
-	print("  B1: (750, 520) 256px  | B2: (880, 420) 256px")
-	print("  Valley: (3800, 740) 512px | Ramp: 2 steps")
+		print("  Ghoul at ", config["pos"], " patrol_dir=", config["patrol_dir"])
+	print("Spawned ", ghoul_configs.size(), " ghouls with varied patrol patterns")
+	print("Level sections: A(step), B(float), C(ascend), D(valley), E(final floats)")
 
 
 func _create_campfire(pos: Vector2) -> void:
@@ -276,6 +280,21 @@ func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
 
 	print("Ground tiles: ", cols, "x", total_rows, " = ", placed, " placed (expected ", expected, ")")
 	print("  X: ", gx, " to ", gx + cols * TILE_SIZE, "  Y: ", gy - TILE_SIZE, " to ", gy - TILE_SIZE + total_rows * TILE_SIZE)
+
+
+func _create_platform_tiles(px: float, py: float, pw: float) -> void:
+	var cols: int = int(ceil(pw / float(TILE_SIZE)))
+	var container := Node2D.new()
+	container.name = "PlatformTiles"
+	container.z_index = -1
+	room_geometry.add_child(container)
+	var surface_coord := Vector2i(2, 0)
+	for c in range(cols):
+		var tile_x: float = px + c * TILE_SIZE
+		var sprite := _make_tile_sprite(surface_coord)
+		sprite.position = Vector2(tile_x, py - TILE_SIZE)
+		container.add_child(sprite)
+	print("Platform tiles: ", cols, " surface tiles at y=", py)
 
 
 func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:

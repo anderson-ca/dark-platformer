@@ -17,8 +17,8 @@ const REPOSITION_DISTANCE := 80.0
 const RECOVER_SPEED := 40.0
 const SOFT_SEPARATION_DIST := 35.0
 const SOFT_SEPARATION_FORCE := 80.0
-const PATROL_SPEED := 40.0
-const PATROL_EDGE_PAUSE := 0.7
+var patrol_speed: float = 40.0
+var patrol_edge_pause: float = 0.7
 var _patrol_pause_timer: float = 0.0
 var _patrol_dir: float = 1.0
 var is_dead: bool = false
@@ -128,6 +128,16 @@ func _ready() -> void:
 	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
 	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
 	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
+
+	# Apply spawn variation to prevent synchronized patrol behavior
+	if has_meta("initial_patrol_dir"):
+		_patrol_dir = get_meta("initial_patrol_dir")
+	if has_meta("patrol_speed_offset"):
+		var offset: float = get_meta("patrol_speed_offset")
+		patrol_speed = 40.0 + offset
+	patrol_edge_pause = randf_range(0.5, 1.2)
+	_patrol_pause_timer = randf_range(0.0, 1.5)
+	print("  Patrol: speed=", patrol_speed, " dir=", _patrol_dir, " edge_pause=", snapped(patrol_edge_pause, 0.1))
 
 
 func _setup_animations() -> void:
@@ -369,12 +379,12 @@ func _patrol(delta: float) -> void:
 		_patrol_dir = -_patrol_dir
 		animated_sprite.flip_h = _patrol_dir < 0
 		attack_area.scale.x = _patrol_dir
-		_patrol_pause_timer = PATROL_EDGE_PAUSE
+		_patrol_pause_timer = patrol_edge_pause
 		velocity.x = 0.0
 		print("Ghoul patrolling — reversed at edge")
 		return
 
-	velocity.x = _patrol_dir * PATROL_SPEED
+	velocity.x = _patrol_dir * patrol_speed
 	animated_sprite.flip_h = _patrol_dir < 0
 
 
@@ -823,7 +833,9 @@ func reset_to_spawn() -> void:
 	attack_count = 0
 	attack_cooldown_timer = 0.0
 	knockback_velocity = Vector2.ZERO
-	_patrol_pause_timer = 0.0
+	if has_meta("initial_patrol_dir"):
+		_patrol_dir = get_meta("initial_patrol_dir")
+	_patrol_pause_timer = randf_range(0.0, 1.5)
 	# Re-enable collision
 	set_collision_layer_value(2, true)
 	hitbox.set_deferred("monitoring", true)

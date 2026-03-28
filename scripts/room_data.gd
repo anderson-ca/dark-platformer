@@ -4,31 +4,40 @@ static var ROOMS: Array[Dictionary] = [
 	# Room 1 — Forest Edge
 	{
 		"name": "Forest Edge",
-		"width": 6600, "height": 720,
+		"width": 5600, "height": 720,
 		"spawn": Vector2(100, 631),
 		"fall_respawn_y": 820,
 		"solids": [
-			# Main ground + extended running area
-			{"x": 0, "y": 640, "w": 3100, "h": 80},
-			# Section A — Stepped platforms (gradual elevation)
-			{"x": 3180, "y": 560, "w": 320, "h": 16},   # A1: 80px up, 5 tiles
-			{"x": 3300, "y": 470, "w": 256, "h": 16},   # A2: 170px up, 4 tiles, overlaps A1
-			{"x": 3400, "y": 380, "w": 320, "h": 16},   # A3: 260px up, 5 tiles, highest
-			# Section B — Floating platforms above ground
-			{"x": 750, "y": 520, "w": 256, "h": 16},     # B1: 120px up, above ground near camp
-			{"x": 880, "y": 420, "w": 256, "h": 16},     # B2: 220px up, 130px right of B1
-			# Section C — Valley/pit after Section A
-			{"x": 3800, "y": 740, "w": 512, "h": 80},   # Valley floor, 100px below, 8 tiles
-			# Valley left ramp (stepped tiles to climb back out)
-			{"x": 3720, "y": 700, "w": 80, "h": 16},    # Step 1
-			{"x": 3660, "y": 660, "w": 80, "h": 16},    # Step 2
-			# Resume normal ground after valley
-			{"x": 4380, "y": 640, "w": 2220, "h": 80},
+			# === MAIN GROUND — flat combat zone ===
+			{"x": 0, "y": 640, "w": 2000, "h": 80},
+			# === SECTION A: Small ground elevation changes ===
+			{"x": 2080, "y": 600, "w": 320, "h": 40},    # A1: 40px step up, 5 tiles wide
+			# Ground continues at normal level
+			{"x": 2480, "y": 640, "w": 384, "h": 80},
+			# === SECTION B: Floating platforms above ground ===
+			{"x": 2560, "y": 530, "w": 256, "h": 16},    # B1: 110px above ground
+			{"x": 2880, "y": 460, "w": 256, "h": 16},    # B2: 70px above B1
+			# === SECTION C: Stepped ascending platforms ===
+			{"x": 2944, "y": 640, "w": 640, "h": 80},    # Ground continues
+			{"x": 3200, "y": 580, "w": 256, "h": 16},    # C1: 60px above ground
+			{"x": 3360, "y": 510, "w": 256, "h": 16},    # C2: 70px above C1
+			{"x": 3520, "y": 440, "w": 320, "h": 16},    # C3: 70px above C2, highest
+			# === SECTION D: Valley pit ===
+			{"x": 3648, "y": 720, "w": 512, "h": 80},    # Valley floor: 80px below ground
+			# Ramp out of valley
+			{"x": 4160, "y": 680, "w": 128, "h": 16},    # Step 1: 40px up from valley
+			{"x": 4224, "y": 640, "w": 128, "h": 16},    # Step 2: back to ground level
+			# === Ground continues after valley ===
+			{"x": 4352, "y": 640, "w": 1200, "h": 80},
+			# === SECTION E: Final floating platforms ===
+			{"x": 4600, "y": 540, "w": 256, "h": 16},    # E1: 100px above ground
+			{"x": 4800, "y": 450, "w": 192, "h": 16},    # E2: 90px above E1
+			{"x": 5000, "y": 540, "w": 256, "h": 16},    # E3: back down, peak pattern
 		],
 		"moving_platforms": [],
 		"hazards": [],
 		"crumbling_platforms": [],
-		"goal": {"x": 6500, "y": 518, "w": 26, "h": 124},
+		"goal": {"x": 5500, "y": 518, "w": 26, "h": 124},
 		"hints": ["A/D: Move | Space: Jump"],
 		"torches": [],
 	},

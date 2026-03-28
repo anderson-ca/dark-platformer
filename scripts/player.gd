@@ -84,7 +84,7 @@ var is_invincible: bool = false
 var _is_taking_hit: bool = false
 var shockwave_cooldown_timer: float = 0.0
 const SHOCKWAVE_COOLDOWN := 2.0
-const SHOCKWAVE_RADIUS := 150.0
+const SHOCKWAVE_RADIUS := 120.0
 const SHOCKWAVE_KNOCKBACK := 250.0
 const SHOCKWAVE_DAMAGE := 2
 const SHOCKWAVE_STUN := 0.5
@@ -483,8 +483,9 @@ func _spawn_electric_hit(pos: Vector2) -> void:
 func _apply_shockwave_effect() -> void:
 	var hit_count := 0
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		var dist := global_position.distance_to(enemy.global_position)
-		if dist < SHOCKWAVE_RADIUS:
+		var dx: float = abs(enemy.global_position.x - global_position.x)
+		var dy: float = abs(enemy.global_position.y - global_position.y)
+		if dx < SHOCKWAVE_RADIUS and dy < 50:
 			hit_count += 1
 			# Knockback away from player
 			var kb_dir: float = sign(enemy.global_position.x - global_position.x)
