@@ -1,6 +1,6 @@
 extends Area2D
 
-const SPEED := 500.0
+const SPEED := 350.0
 const DAMAGE := 1
 const KNOCKBACK_FORCE := 150.0
 const ORB_FRAME := 128
@@ -37,8 +37,11 @@ func _ready() -> void:
 	animated_sprite.flip_h = (direction == -1)
 	animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	animated_sprite.modulate = Color(0.8, 0.5, 1.0, 1.0)
+	animated_sprite.scale = Vector2(0.7, 0.7) * animated_sprite.scale
 	animated_sprite.play("burst")
 	animated_sprite.animation_finished.connect(_on_animation_finished)
+	collision_shape.scale = Vector2(0.7, 0.7)
+	print("Projectile sprite scaled to 70% (0.7)")
 
 	# Purple outline shader
 	var shader := load("res://shaders/purple_outline.gdshader")
