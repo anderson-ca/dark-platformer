@@ -289,12 +289,18 @@ func _create_platform_tiles(px: float, py: float, pw: float) -> void:
 	container.z_index = -1
 	room_geometry.add_child(container)
 	var surface_coord := Vector2i(2, 0)
+	var fill_coord := Vector2i(4, 10)
 	for c in range(cols):
 		var tile_x: float = px + c * TILE_SIZE
-		var sprite := _make_tile_sprite(surface_coord)
-		sprite.position = Vector2(tile_x, py - TILE_SIZE)
-		container.add_child(sprite)
-	print("Platform tiles: ", cols, " surface tiles at y=", py)
+		# Surface tile (top row)
+		var surface := _make_tile_sprite(surface_coord)
+		surface.position = Vector2(tile_x, py - TILE_SIZE)
+		container.add_child(surface)
+		# Fill tile (bottom row, directly below surface)
+		var fill := _make_tile_sprite(fill_coord)
+		fill.position = Vector2(tile_x, py)
+		container.add_child(fill)
+	print("Platform tiles: ", cols, " cols x 2 rows at y=", py)
 
 
 func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:
