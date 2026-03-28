@@ -86,6 +86,8 @@ const SHOCKWAVE_KNOCKBACK := 250.0
 const SHOCKWAVE_DAMAGE := 2
 const SHOCKWAVE_STUN := 0.5
 const MAX_HEALTH := 3
+var _projectile_cooldown: float = 0.0
+const PROJECTILE_COOLDOWN := 0.35
 var current_health: int = MAX_HEALTH
 
 # Raw input tracking
@@ -266,6 +268,8 @@ func _setup_sprite_frames() -> void:
 		["shield_hold", P + "The Evil Sage-shield hold.png",  8, 10, true],
 		["shield_down", P + "The Evil Sage-shield down.png",  4, 10, false],
 		["shockwave",   P + "The Evil Sage-Shockwave.png",   14, 12, false],
+		["run_attack",  P + "The Evil Sage-Run-Attack.png",  8, 10, true],
+		["jump_attack", P + "The Evil Sage-Jump-Attack.png", 4, 10, false],
 	]
 
 	for anim_def in anims:
@@ -929,6 +933,7 @@ func _physics_process(delta: float) -> void:
 
 	# Timers
 	shockwave_cooldown_timer = max(shockwave_cooldown_timer - delta, 0.0)
+	_projectile_cooldown = max(_projectile_cooldown - delta, 0.0)
 	if _combo_window:
 		_combo_timer -= delta
 		if _combo_timer <= 0.0:
@@ -1007,8 +1012,9 @@ func _physics_process(delta: float) -> void:
 		animated_sprite.position.x = 0.0
 		return
 
-	# --- Attack / Combo ---
-	if attack_just_pressed and is_on_floor() and dash_timer <= 0.0:
+	# --- Attack / Combo (PATH A — standing still on ground) ---
+	var _standing_attack_fired := false
+	if attack_just_pressed and is_on_floor() and abs(velocity.x) < 30 and dash_timer <= 0.0:
 		if _combo_window and _combo_stage == 1:
 			# Double tap: play full attack (both orbs)
 			is_attacking = true
@@ -1022,6 +1028,8 @@ func _physics_process(delta: float) -> void:
 			_flash_attack_glow()
 			_attack_hitbox.scale.x = facing
 			_attack_hitbox.monitoring = false  # enabled on impact frames
+			_standing_attack_fired = true
+			print("Standing attack — full animation (combo)")
 		elif not is_attacking and _combo_stage == 0:
 			# Single tap: quick attack (first orb only)
 			is_attacking = true
@@ -1034,6 +1042,18 @@ func _physics_process(delta: float) -> void:
 			_flash_attack_glow()
 			_attack_hitbox.scale.x = facing
 			_attack_hitbox.monitoring = false  # enabled on impact frames
+			_standing_attack_fired = true
+			print("Standing attack — full animation")
+
+	# --- Moving/Air Projectile Attack (PATH B) ---
+	if attack_just_pressed and not _standing_attack_fired and dash_timer <= 0.0 and not is_attacking and _projectile_cooldown <= 0.0:
+		_spawn_projectile()
+		_flash_attack_glow()
+		_projectile_cooldown = PROJECTILE_COOLDOWN
+		if is_on_floor():
+			print("Moving attack — projectile fired (run_attack)")
+		else:
+			print("Air attack — projectile fired (jump_attack)")
 
 	if is_attacking:
 		# Dash cancel — interrupt attack with dash
@@ -1237,6 +1257,16 @@ func _update_animation() -> void:
 		anim = "dash"
 	elif is_wall_sliding:
 		anim = "wall_slide"
+	elif _projectile_cooldown > 0.0 and not is_attacking:
+		# Recently fired a moving/air projectile — show casting animation
+		if is_on_floor() and abs(velocity.x) > 30:
+			anim = "run_attack"
+		elif not is_on_floor() and velocity.y < -40:
+			anim = "jump_attack"
+		elif not is_on_floor():
+			anim = "jump_attack"
+		elif abs(velocity.x) > 30:
+			anim = "run_attack"
 	elif not is_on_floor():
 		if velocity.y < -40:
 			anim = "jump"
