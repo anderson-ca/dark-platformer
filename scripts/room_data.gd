@@ -8,16 +8,22 @@ static var ROOMS: Array[Dictionary] = [
 		"spawn": Vector2(100, 631),
 		"fall_respawn_y": 820,
 		"solids": [
-			{"x": 0, "y": 640, "w": 2500, "h": 80},
-			# Floating platforms for combat arena
-			{"x": 2600, "y": 540, "w": 256, "h": 16},   # Platform 1: 100px up, 4 tiles
-			{"x": 2950, "y": 440, "w": 192, "h": 16},   # Platform 2: 200px up, 3 tiles
-			{"x": 3250, "y": 560, "w": 320, "h": 16},   # Platform 3: 80px up, 5 tiles
-			{"x": 3650, "y": 390, "w": 192, "h": 16},   # Platform 4: 250px up, highest
-			# Valley section: ground drops 100px
-			{"x": 3950, "y": 740, "w": 384, "h": 80},   # Valley floor, 6 tiles wide
+			# Main ground + extended running area
+			{"x": 0, "y": 640, "w": 3100, "h": 80},
+			# Section A — Stepped platforms (gradual elevation)
+			{"x": 3180, "y": 560, "w": 320, "h": 16},   # A1: 80px up, 5 tiles
+			{"x": 3300, "y": 470, "w": 256, "h": 16},   # A2: 170px up, 4 tiles, overlaps A1
+			{"x": 3400, "y": 380, "w": 320, "h": 16},   # A3: 260px up, 5 tiles, highest
+			# Section B — Floating platforms above ground
+			{"x": 750, "y": 520, "w": 256, "h": 16},     # B1: 120px up, above ground near camp
+			{"x": 880, "y": 420, "w": 256, "h": 16},     # B2: 220px up, 130px right of B1
+			# Section C — Valley/pit after Section A
+			{"x": 3800, "y": 740, "w": 512, "h": 80},   # Valley floor, 100px below, 8 tiles
+			# Valley left ramp (stepped tiles to climb back out)
+			{"x": 3720, "y": 700, "w": 80, "h": 16},    # Step 1
+			{"x": 3660, "y": 660, "w": 80, "h": 16},    # Step 2
 			# Resume normal ground after valley
-			{"x": 4400, "y": 640, "w": 2200, "h": 80},
+			{"x": 4380, "y": 640, "w": 2220, "h": 80},
 		],
 		"moving_platforms": [],
 		"hazards": [],

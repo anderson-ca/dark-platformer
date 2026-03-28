@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-enum State { IDLE, WAKE, CHASE, ATTACK, HIT, DEATH, RECOVER, REPOSITION }
+enum State { IDLE, WAKE, CHASE, ATTACK, HIT, DEATH, RECOVER, REPOSITION, PATROL }
 
 const SPEED := 60.0
 const GRAVITY := 1400.0
@@ -17,6 +17,11 @@ const REPOSITION_DISTANCE := 80.0
 const RECOVER_SPEED := 40.0
 const SOFT_SEPARATION_DIST := 35.0
 const SOFT_SEPARATION_FORCE := 80.0
+const PATROL_SPEED := 40.0
+const PATROL_EDGE_PAUSE := 0.7
+var _patrol_pause_timer: float = 0.0
+var _patrol_dir: float = 1.0
+var is_dead: bool = false
 
 var state: State = State.IDLE
 var health: int = 3
@@ -58,6 +63,8 @@ var _eye_light: PointLight2D = null
 var _rim_material: ShaderMaterial = null
 var _telegraph_tween: Tween = null
 var _revealed: bool = false
+var floor_check_left: RayCast2D = null
+var floor_check_right: RayCast2D = null
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
@@ -80,6 +87,25 @@ func _ready() -> void:
 				_player = world.get_node("Player")
 				break
 			world = world.get_parent()
+
+	# Floor check raycasts for ledge detection
+	floor_check_left = RayCast2D.new()
+	floor_check_left.name = "FloorCheckLeft"
+	floor_check_left.position = Vector2(-15, 5)
+	floor_check_left.target_position = Vector2(0, 20)
+	floor_check_left.enabled = true
+	floor_check_left.collision_mask = 0
+	floor_check_left.set_collision_mask_value(3, true)
+	add_child(floor_check_left)
+
+	floor_check_right = RayCast2D.new()
+	floor_check_right.name = "FloorCheckRight"
+	floor_check_right.position = Vector2(15, 5)
+	floor_check_right.target_position = Vector2(0, 20)
+	floor_check_right.enabled = true
+	floor_check_right.collision_mask = 0
+	floor_check_right.set_collision_mask_value(3, true)
+	add_child(floor_check_right)
 
 	_create_rim_light()
 	_create_eye_light()
@@ -145,6 +171,9 @@ func _setup_animations() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+
 	# Petrify check — FIRST, before anything else
 	if is_petrified:
 		petrify_timer -= delta
@@ -220,6 +249,8 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 		State.CHASE:
 			_chase_player(delta)
+		State.PATROL:
+			_patrol(delta)
 		State.ATTACK:
 			velocity.x = 0.0
 			_check_attack_damage()
@@ -240,7 +271,11 @@ func _physics_process(delta: float) -> void:
 				var away_dir: float = sign(global_position.x - _player.global_position.x)
 				if away_dir == 0.0:
 					away_dir = -facing
-				velocity.x = away_dir * RECOVER_SPEED
+				# Ledge check before backing up
+				if is_on_floor() and _check_ledge_ahead(away_dir):
+					velocity.x = 0.0
+				else:
+					velocity.x = away_dir * RECOVER_SPEED
 				animated_sprite.flip_h = away_dir > 0  # face player while backing up
 			if recover_timer <= 0.0:
 				_enter_state(State.REPOSITION)
@@ -281,6 +316,14 @@ func _check_detection() -> void:
 		_enter_state(State.WAKE)
 
 
+func _check_ledge_ahead(dir: float) -> bool:
+	# Returns true if there's a ledge (no floor) in the given direction
+	var check := floor_check_right if dir > 0 else floor_check_left
+	if check and not check.is_colliding():
+		return true
+	return false
+
+
 func _chase_player(_delta: float) -> void:
 	if _player == null:
 		_enter_state(State.IDLE)
@@ -295,10 +338,44 @@ func _chase_player(_delta: float) -> void:
 		return
 
 	if dist > DETECTION_RANGE * 1.5:
-		_enter_state(State.IDLE)
+		_enter_state(State.PATROL)
+		return
+
+	# Ledge detection — don't chase off edges
+	if is_on_floor() and _check_ledge_ahead(facing):
+		velocity.x = 0.0
+		print("Ghoul ledge detected — stopping")
 		return
 
 	velocity.x = facing * SPEED
+
+
+func _patrol(delta: float) -> void:
+	# Check if player is nearby — switch to chase
+	if _player and is_instance_valid(_player):
+		var dist := global_position.distance_to(_player.global_position)
+		if dist < DETECTION_RANGE:
+			_enter_state(State.CHASE)
+			return
+
+	# Edge pause
+	if _patrol_pause_timer > 0.0:
+		_patrol_pause_timer -= delta
+		velocity.x = 0.0
+		return
+
+	# Ledge detection — reverse at edges
+	if is_on_floor() and _check_ledge_ahead(_patrol_dir):
+		_patrol_dir = -_patrol_dir
+		animated_sprite.flip_h = _patrol_dir < 0
+		attack_area.scale.x = _patrol_dir
+		_patrol_pause_timer = PATROL_EDGE_PAUSE
+		velocity.x = 0.0
+		print("Ghoul patrolling — reversed at edge")
+		return
+
+	velocity.x = _patrol_dir * PATROL_SPEED
+	animated_sprite.flip_h = _patrol_dir < 0
 
 
 func _face_player() -> void:
@@ -332,6 +409,8 @@ func _enter_state(new_state: State) -> void:
 		State.IDLE:
 			animated_sprite.play("idle")
 			attack_count = 0
+		State.PATROL:
+			animated_sprite.play("walk")
 		State.WAKE:
 			animated_sprite.play("wake")
 		State.CHASE:
@@ -373,7 +452,11 @@ func _on_animation_finished() -> void:
 				# Go back to chase (cooldown prevents immediate re-attack)
 				_enter_state(State.CHASE)
 		State.DEATH:
-			queue_free()
+			# Don't queue_free — hide and disable so we can revive on player death
+			is_dead = true
+			visible = false
+			set_collision_layer_value(2, false)
+			velocity = Vector2.ZERO
 
 
 func _spawn_hit_effect() -> void:
@@ -724,3 +807,33 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 	if body == _player and state == State.ATTACK:
 		if _player.has_method("take_damage"):
 			_player.take_damage(global_position)
+
+
+func reset_to_spawn() -> void:
+	state = State.IDLE
+	health = 3
+	velocity = Vector2.ZERO
+	visible = true
+	is_dead = false
+	is_stunned = false
+	is_petrified = false
+	is_burning = false
+	is_rooted = false
+	_revealed = false
+	attack_count = 0
+	attack_cooldown_timer = 0.0
+	knockback_velocity = Vector2.ZERO
+	_patrol_pause_timer = 0.0
+	# Re-enable collision
+	set_collision_layer_value(2, true)
+	hitbox.set_deferred("monitoring", true)
+	attack_area.set_deferred("monitoring", true)
+	# Reset visuals
+	animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	animated_sprite.play("idle")
+	# Reset reveal state — start hidden
+	if _eye_light:
+		_eye_light.energy = 0.0
+	if _rim_material:
+		_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, 0.0))
+	print("Ghoul reset to spawn at: ", global_position)

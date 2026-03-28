@@ -21,6 +21,7 @@ var current_room_index: int = 0
 @onready var hud_node: CanvasLayer = $HUD
 @onready var rain: CPUParticles2D = $Player/Camera2D/Rain
 @onready var rain_splash: CPUParticles2D = $Player/Camera2D/RainSplash
+var enemy_spawn_data: Array = []
 
 var _canvas_modulate: CanvasModulate
 var _base_darkness := Color(0.35, 0.35, 0.4, 1.0)
@@ -130,6 +131,13 @@ func load_room(index: int) -> void:
 	hud_node.set_room_name(room.name, index)
 	hud_node.set_hints(room.get("hints", []))
 
+	# Store enemy spawn positions for revival
+	enemy_spawn_data.clear()
+	await get_tree().process_frame  # wait for enemies to be added
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		enemy_spawn_data.append({"enemy": enemy, "spawn_pos": enemy.global_position})
+	print("Stored ", enemy_spawn_data.size(), " enemy spawn positions for revival")
+
 
 func _setup_room1_props() -> void:
 	# Ground ColorRect removed — parallax floor layer (10-(floor).png) serves as visual ground.
@@ -140,8 +148,8 @@ func _setup_room1_props() -> void:
 	wall.name = "zone_1_boundary"
 	wall.set_collision_layer_value(1, true)
 	wall.set_collision_layer_value(3, true)
-	wall.position = Vector2(4800, 360)  # centered vertically in 720px room
-	print("Zone 1 boundary: 900 -> 4800")
+	wall.position = Vector2(4600, 360)  # centered vertically in 720px room
+	print("Zone 1 boundary: 900 -> 4600")
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(10, 720)
 	var col := CollisionShape2D.new()
@@ -152,25 +160,27 @@ func _setup_room1_props() -> void:
 	# Campfire with roasting pig
 	_create_campfire(Vector2(350, 640))
 
-	# Ghouls
+	# Ghouls — Y = platform_top_y - 9 (ghoul collision bottom is 9px below origin)
 	var ghoul_scene := load("res://scenes/enemies/Ghoul.tscn") as PackedScene
 	var ghoul_positions := [
-		Vector2(800, 631), Vector2(1400, 631), Vector2(2000, 631),   # Original 3
-		Vector2(2700, 531),   # Platform 1
-		Vector2(3350, 551),   # Platform 3
-		Vector2(3720, 381),   # Platform 4
-		Vector2(4050, 731),   # Valley left
-		Vector2(4200, 731),   # Valley right
+		Vector2(800, 631),    # Original ground ghoul
+		Vector2(1400, 631),   # Original ground ghoul
+		Vector2(2000, 631),   # Original ground ghoul
+		Vector2(3340, 551),   # Platform A1 center (y=560-9)
+		Vector2(3560, 371),   # Platform A3 center (y=380-9)
+		Vector2(878, 511),    # Platform B1 center (y=520-9)
+		Vector2(3980, 731),   # Valley left (y=740-9)
+		Vector2(4130, 731),   # Valley right (y=740-9)
 	]
 	for pos in ghoul_positions:
 		var ghoul := ghoul_scene.instantiate()
 		ghoul.global_position = pos
 		room_geometry.add_child(ghoul)
 	print("Spawned ", ghoul_positions.size(), " ghouls")
-	print("Level extended: 5 platforms, 5 new ghouls, valley section added")
-	print("  Platform 1: (2600, 540) 256px  |  Platform 2: (2950, 440) 192px")
-	print("  Platform 3: (3250, 560) 320px  |  Platform 4: (3650, 390) 192px")
-	print("  Valley: (3950, 740) 384px")
+	print("Level: 5 platforms (A1-A3, B1-B2), valley, ramp steps")
+	print("  A1: (3180, 560) 320px | A2: (3300, 470) 256px | A3: (3400, 380) 320px")
+	print("  B1: (750, 520) 256px  | B2: (880, 420) 256px")
+	print("  Valley: (3800, 740) 512px | Ramp: 2 steps")
 
 
 func _create_campfire(pos: Vector2) -> void:
@@ -460,3 +470,11 @@ func _do_lightning_flash() -> void:
 func _on_hazard() -> void:
 	player.respawn()
 	hud_node.flash_respawn()
+	# Revive all enemies to spawn positions
+	for data in enemy_spawn_data:
+		var enemy = data["enemy"]
+		if is_instance_valid(enemy):
+			enemy.global_position = data["spawn_pos"]
+			if enemy.has_method("reset_to_spawn"):
+				enemy.reset_to_spawn()
+	print("All enemies revived")
