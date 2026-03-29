@@ -84,15 +84,19 @@ func load_room(index: int) -> void:
 	# Wait a frame for queue_free to process
 	await get_tree().process_frame
 
-	# Build solids
-	for s in room.solids:
-		_create_solid(s.x, s.y, s.w, s.h)
-		# Add visual ground tiles for thick ground solids only
-		if s.w > 200 and s.h >= 80:
-			_create_ground_tiles(s.x, s.y, s.w)
-		# Add single-row surface tiles for thin platforms
-		elif s.w > 100 and s.h < 80:
-			_create_platform_tiles(s.x, s.y, s.w)
+	# Build solids (Room 1 uses TileMapLayer — skip code-generated terrain)
+	if index != 0:
+		for s in room.solids:
+			_create_solid(s.x, s.y, s.w, s.h)
+			# Add visual ground tiles for thick ground solids only
+			if s.w > 200 and s.h >= 80:
+				_create_ground_tiles(s.x, s.y, s.w)
+			# Add single-row surface tiles for thin platforms
+			elif s.w > 100 and s.h < 80:
+				_create_platform_tiles(s.x, s.y, s.w)
+		print("Room ", index, ": using code-generated terrain")
+	else:
+		print("Room 1: using TileMapLayer for terrain (code generation skipped)")
 
 	# Build moving platforms
 	for mp in room.moving_platforms:
@@ -145,20 +149,6 @@ func load_room(index: int) -> void:
 func _setup_room1_props() -> void:
 	# Ground ColorRect removed — parallax floor layer (10-(floor).png) serves as visual ground.
 	# Collision StaticBody2D at y=640 is created by _create_solid() from room data.
-
-	# Zone 1 boundary wall — invisible, blocks player at x=2400
-	var wall := StaticBody2D.new()
-	wall.name = "zone_1_boundary"
-	wall.set_collision_layer_value(1, true)
-	wall.set_collision_layer_value(3, true)
-	wall.position = Vector2(5600, 360)  # centered vertically in 720px room
-	print("Zone 1 boundary: 900 -> 5600")
-	var shape := RectangleShape2D.new()
-	shape.size = Vector2(10, 720)
-	var col := CollisionShape2D.new()
-	col.shape = shape
-	wall.add_child(col)
-	room_geometry.add_child(wall)
 
 	# Campfire with roasting pig
 	_create_campfire(Vector2(350, 640))
