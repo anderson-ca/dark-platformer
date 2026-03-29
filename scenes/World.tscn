@@ -187,6 +187,7 @@ sources/0 = SubResource("TileSetAtlasSource_nrtoj")
 script = ExtResource("1_world")
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="." unique_id=1836780912]
+visible = false
 
 [node name="sky" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1453572963]
 motion_scale = Vector2(0.1, 0)
@@ -325,5 +326,5 @@ script = ExtResource("3_hud")
 
 [node name="LevelTiles" type="TileMapLayer" parent="." unique_id=1338956286]
 z_index = 1
-tile_map_data = PackedByteArray("AAAFAAkAAAAGAAMAAAAEAAkAAAAGAAMAAAADAAkAAAAGAAMAAAAGAAkAAAADAAMAAAAHAAkAAAADAAMAAAAGAAgAAAADAAMAAAAHAAgAAAADAAMAAAAIAAkAAAADAAMAAAAFAAgAAAADAAUAAAA=")
+tile_map_data = PackedByteArray("AAAGAAoAAAACAAMAAAAFAAoAAAACAAMAAAAEAAoAAAACAAMAAAADAAoAAAACAAMAAAACAAoAAAACAAMAAAABAAoAAAACAAMAAAAAAAoAAAACAAMAAAAHAAoAAAACAAMAAAA=")
 tile_set = SubResource("TileSet_i4b1j")

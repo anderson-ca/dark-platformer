@@ -153,28 +153,7 @@ func _setup_room1_props() -> void:
 	# Campfire with roasting pig
 	_create_campfire(Vector2(350, 640))
 
-	# Ghouls — Y = platform_top_y - 9 (ghoul collision bottom is 9px below origin)
-	var ghoul_scene := load("res://scenes/enemies/Ghoul.tscn") as PackedScene
-	var ghoul_configs := [
-		{"pos": Vector2(600, 631), "patrol_dir": 1.0, "speed_offset": 0},
-		{"pos": Vector2(1400, 631), "patrol_dir": -1.0, "speed_offset": 8},
-		{"pos": Vector2(2150, 591), "patrol_dir": 1.0, "speed_offset": -5},
-		{"pos": Vector2(2600, 631), "patrol_dir": -1.0, "speed_offset": 12},
-		{"pos": Vector2(3280, 571), "patrol_dir": 1.0, "speed_offset": -8},
-		{"pos": Vector2(3600, 431), "patrol_dir": -1.0, "speed_offset": 5},
-		{"pos": Vector2(3800, 711), "patrol_dir": 1.0, "speed_offset": 0},
-		{"pos": Vector2(3950, 711), "patrol_dir": -1.0, "speed_offset": 10},
-		{"pos": Vector2(4700, 631), "patrol_dir": 1.0, "speed_offset": -6},
-	]
-	for config in ghoul_configs:
-		var ghoul := ghoul_scene.instantiate()
-		ghoul.global_position = config["pos"]
-		ghoul.set_meta("initial_patrol_dir", config["patrol_dir"])
-		ghoul.set_meta("patrol_speed_offset", config["speed_offset"])
-		room_geometry.add_child(ghoul)
-		print("  Ghoul at ", config["pos"], " patrol_dir=", config["patrol_dir"])
-	print("Spawned ", ghoul_configs.size(), " ghouls with varied patrol patterns")
-	print("Level sections: A(step), B(float), C(ascend), D(valley), E(final floats)")
+	print("Room 1: enemies disabled (no terrain yet)")
 
 
 func _create_campfire(pos: Vector2) -> void:
