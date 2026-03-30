@@ -21,9 +21,9 @@ const DOUBLE_JUMP_FACTOR = 0.8
 
 # Wall cling + wall jump
 const WALL_SLIDE_SPEED = 60.0
-const WALL_JUMP_VX = 280.0
+const WALL_JUMP_VX = 80.0   # was 280.0 — reduced so player stays near wall
 const WALL_JUMP_VY = 380.0
-const WALL_JUMP_LOCKOUT = 0.2
+const WALL_JUMP_LOCKOUT = 0.1  # was 0.2 — shorter lockout lets player redirect sooner
 
 # Dash
 const DASH_SPEED = 400.0
@@ -119,6 +119,7 @@ func _register_input_actions() -> void:
 func _ready() -> void:
 	_register_input_actions()
 	add_to_group("player")
+	print("Wall jump tuned: VX=80 (was 280), lockout=0.1s (was 0.2s) — single-wall climbing enabled")
 	# Player on layer 1, collides with ground (layers 1+3) but NOT enemies (layer 2)
 	set_collision_layer_value(1, true)
 	set_collision_layer_value(2, false)
@@ -990,5 +991,3 @@ func _update_animation() -> void:
 
 	if animated_sprite.animation != anim or not animated_sprite.is_playing():
 		animated_sprite.play(anim)
-
-
