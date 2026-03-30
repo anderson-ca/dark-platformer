@@ -309,17 +309,7 @@ func _setup_sprite_frames() -> void:
 
 
 func _setup_player_light() -> void:
-	var size := 256
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(size / 2.0, size / 2.0)
-	var radius := size / 2.0
-	for y in range(size):
-		for x in range(size):
-			var dist := Vector2(x, y).distance_to(center)
-			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
-			alpha = alpha * alpha
-			img.set_pixel(x, y, Color(1, 1, 1, alpha))
-	var light_tex := ImageTexture.create_from_image(img)
+	var light_tex := VFXUtils.create_light_texture(256)
 
 	var light := PointLight2D.new()
 	light.name = "PlayerLight"
@@ -369,18 +359,7 @@ func _setup_shield_zone() -> void:
 
 
 func _setup_attack_glow() -> void:
-	# Generate light texture
-	var size := 64
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(size / 2.0, size / 2.0)
-	var radius := size / 2.0
-	for y in range(size):
-		for x in range(size):
-			var dist := Vector2(x, y).distance_to(center)
-			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
-			alpha = alpha * alpha
-			img.set_pixel(x, y, Color(1, 1, 1, alpha))
-	var light_tex := ImageTexture.create_from_image(img)
+	var light_tex := VFXUtils.create_light_texture(64)
 
 	_attack_glow_light = PointLight2D.new()
 	_attack_glow_light.name = "AttackGlowLight"
@@ -451,33 +430,7 @@ func _repel_enemies_from_shield() -> void:
 
 
 func _spawn_electric_hit(pos: Vector2) -> void:
-	var EL_FRAME_W := 82
-	var EL_FRAME_H := 65
-	var EL_FRAMES := 9
-	var el_tex := load("res://assets/effects/combat/hit/Electric Hit 4.png") as Texture2D
-
-	var sf := SpriteFrames.new()
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
-	sf.add_animation("electric")
-	sf.set_animation_speed("electric", 14.0)
-	sf.set_animation_loop("electric", false)
-	for i in range(EL_FRAMES):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = el_tex
-		atlas.region = Rect2(i * EL_FRAME_W, 0, EL_FRAME_W, EL_FRAME_H)
-		sf.add_frame("electric", atlas)
-
-	var sprite := AnimatedSprite2D.new()
-	sprite.sprite_frames = sf
-	sprite.z_index = 10
-	sprite.scale = Vector2(0.4, 0.4)
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite.global_position = pos + Vector2(0, -12)
-	sprite.animation_finished.connect(sprite.queue_free)
-	get_parent().add_child(sprite)
-	sprite.play("electric")
-	print("Electric hit: ", EL_FRAMES, " frames of ", EL_FRAME_W, "x", EL_FRAME_H, " @ 14 FPS, scale=0.4")
+	VFXUtils.spawn_sprite_effect(get_parent(), "res://assets/effects/combat/hit/Electric Hit 4.png", 9, 82, 65, pos + Vector2(0, -12), "electric", 14.0, Vector2(0.4, 0.4))
 
 
 func _apply_shockwave_effect() -> void:
@@ -532,33 +485,7 @@ func take_damage(from_position: Vector2) -> void:
 
 
 func _spawn_shield_block_effect() -> void:
-	var SB_FRAME_W := 82
-	var SB_FRAME_H := 65
-	var SB_FRAMES := 7
-	var sb_tex := load("res://assets/effects/combat/hit/Blood Hit 1.png") as Texture2D
-
-	var sf := SpriteFrames.new()
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
-	sf.add_animation("shield_block")
-	sf.set_animation_speed("shield_block", 14.0)
-	sf.set_animation_loop("shield_block", false)
-	for i in range(SB_FRAMES):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = sb_tex
-		atlas.region = Rect2(i * SB_FRAME_W, 0, SB_FRAME_W, SB_FRAME_H)
-		sf.add_frame("shield_block", atlas)
-
-	var sprite := AnimatedSprite2D.new()
-	sprite.sprite_frames = sf
-	sprite.z_index = 10
-	sprite.scale = Vector2(0.3, 0.3)
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite.global_position = global_position + Vector2(facing * 15, -10)
-	sprite.animation_finished.connect(sprite.queue_free)
-	get_parent().add_child(sprite)
-	sprite.play("shield_block")
-	print("Shield block effect: ", SB_FRAMES, " frames of ", SB_FRAME_W, "x", SB_FRAME_H, " @ 14 FPS, scale=0.3")
+	VFXUtils.spawn_sprite_effect(get_parent(), "res://assets/effects/combat/hit/Blood Hit 1.png", 7, 82, 65, global_position + Vector2(facing * 15, -10), "shield_block")
 
 
 func _spawn_double_jump_burst() -> void:
@@ -671,33 +598,7 @@ func _spawn_summon() -> void:
 
 
 func _spawn_blood_effect() -> void:
-	var BLOOD_FRAME_W := 82
-	var BLOOD_FRAME_H := 65
-	var BLOOD_FRAMES := 9
-	var blood_tex := load("res://assets/effects/combat/hit/Blood hit 3.png") as Texture2D
-
-	var sf := SpriteFrames.new()
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
-	sf.add_animation("blood")
-	sf.set_animation_speed("blood", 14.0)
-	sf.set_animation_loop("blood", false)
-	for i in range(BLOOD_FRAMES):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = blood_tex
-		atlas.region = Rect2(i * BLOOD_FRAME_W, 0, BLOOD_FRAME_W, BLOOD_FRAME_H)
-		sf.add_frame("blood", atlas)
-
-	var sprite := AnimatedSprite2D.new()
-	sprite.sprite_frames = sf
-	sprite.z_index = 10
-	sprite.scale = Vector2(0.3, 0.3)
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite.global_position = global_position + Vector2(0, -10)
-	sprite.animation_finished.connect(sprite.queue_free)
-	get_parent().add_child(sprite)
-	sprite.play("blood")
-	print("Blood effect: ", BLOOD_FRAMES, " frames of ", BLOOD_FRAME_W, "x", BLOOD_FRAME_H, " @ 14 FPS")
+	VFXUtils.spawn_sprite_effect(get_parent(), "res://assets/effects/combat/hit/Blood hit 3.png", 9, 82, 65, global_position + Vector2(0, -10), "blood")
 
 
 func _play_hit(from_position: Vector2) -> void:

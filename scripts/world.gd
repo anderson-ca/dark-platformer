@@ -406,17 +406,7 @@ func _on_goal_reached() -> void:
 
 
 func _make_light_texture() -> ImageTexture:
-	var size := 256
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(size / 2.0, size / 2.0)
-	var radius := size / 2.0
-	for y in range(size):
-		for x in range(size):
-			var dist := Vector2(x, y).distance_to(center)
-			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
-			alpha = alpha * alpha  # quadratic falloff for soft edges
-			img.set_pixel(x, y, Color(1, 1, 1, alpha))
-	return ImageTexture.create_from_image(img)
+	return VFXUtils.create_light_texture(256)
 
 
 func _process(delta: float) -> void:

@@ -42,18 +42,8 @@ func _ready() -> void:
 
 	collision_shape.scale = Vector2(0.7, 0.7)
 
-	# Purple glow light
-	var light_tex_size := 64
-	var img := Image.create(light_tex_size, light_tex_size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(light_tex_size / 2.0, light_tex_size / 2.0)
-	var radius := light_tex_size / 2.0
-	for y in range(light_tex_size):
-		for x in range(light_tex_size):
-			var dist := Vector2(x, y).distance_to(center)
-			var alpha := clampf(1.0 - dist / radius, 0.0, 1.0)
-			alpha = alpha * alpha
-			img.set_pixel(x, y, Color(1, 1, 1, alpha))
-	var light_tex := ImageTexture.create_from_image(img)
+	# Projectile glow light
+	var light_tex := VFXUtils.create_light_texture(64)
 
 	var light := PointLight2D.new()
 	light.name = "ProjectileLight"
