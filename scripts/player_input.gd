@@ -12,6 +12,7 @@ static func register_all_actions() -> void:
 		"shockwave": [],
 		"switch_attack": [],
 		"switch_summon": [],
+		"look_down": [],
 	}
 
 	# Keyboard events
@@ -25,6 +26,7 @@ static func register_all_actions() -> void:
 		"shockwave": KEY_L,
 		"switch_attack": KEY_TAB,
 		"switch_summon": KEY_QUOTELEFT,
+		"look_down": KEY_S,
 	}
 	for action_name in key_map:
 		var ev := InputEventKey.new()
@@ -50,6 +52,7 @@ static func register_all_actions() -> void:
 		"move_left": JOY_BUTTON_DPAD_LEFT,
 		"move_right": JOY_BUTTON_DPAD_RIGHT,
 		"jump": JOY_BUTTON_DPAD_UP,
+		"look_down": JOY_BUTTON_DPAD_DOWN,
 	}
 	for action_name in dpad_map:
 		var ev := InputEventJoypadButton.new()
@@ -72,6 +75,12 @@ static func register_all_actions() -> void:
 	rt.axis = JOY_AXIS_TRIGGER_RIGHT
 	rt.axis_value = 0.5
 	actions["dash"].append(rt)
+
+	# Left stick down for look_down
+	var axis_down := InputEventJoypadMotion.new()
+	axis_down.axis = JOY_AXIS_LEFT_Y
+	axis_down.axis_value = 1.0
+	actions["look_down"].append(axis_down)
 
 	# Erase and recreate all actions to ensure full control
 	for action_name in actions:

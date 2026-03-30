@@ -102,12 +102,20 @@ var _key_attack_just: bool = false
 var _key_shockwave_just: bool = false
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var camera: Camera2D = $Camera2D
 var _attack_glow_light: PointLight2D
 
 # Dust animated sprites
 var _dust: PlayerDust = PlayerDust.new()
 var _was_on_floor: bool = false
 var _was_dashing: bool = false
+
+# Camera peek
+var _peek_hold_timer: float = 0.0
+const PEEK_HOLD_DELAY := 0.5
+const PEEK_OFFSET := 80.0
+const PEEK_SPEED := 120.0
+var _current_peek_offset: float = 0.0
 var _dash_ghost_timer: float = 0.0
 const DASH_GHOST_INTERVAL := 0.03
 
@@ -120,6 +128,7 @@ func _ready() -> void:
 	_register_input_actions()
 	add_to_group("player")
 	print("Wall jump tuned: VX=80 (was 280), lockout=0.1s (was 0.2s) — single-wall climbing enabled")
+	print("Camera peek: hold_delay=0.5s, offset=80px, speed=120px/s")
 	# Player on layer 1, collides with ground (layers 1+3) but NOT enemies (layer 2)
 	set_collision_layer_value(1, true)
 	set_collision_layer_value(2, false)
@@ -945,6 +954,25 @@ func _physics_process(delta: float) -> void:
 	# --- Landing detection for dust burst ---
 	var landed := is_on_floor() and not _was_on_floor
 	_was_on_floor = is_on_floor()
+
+	# Camera peek down
+	var want_peek := false
+	if is_on_floor() and abs(velocity.x) < 10.0 and not is_attacking and not is_shielding and not is_shockwaving and not is_dead:
+		if Input.is_action_pressed("look_down"):
+			_peek_hold_timer += delta
+			if _peek_hold_timer >= PEEK_HOLD_DELAY:
+				want_peek = true
+		else:
+			_peek_hold_timer = 0.0
+	else:
+		_peek_hold_timer = 0.0
+
+	if want_peek:
+		_current_peek_offset = move_toward(_current_peek_offset, PEEK_OFFSET, PEEK_SPEED * delta)
+	else:
+		_current_peek_offset = move_toward(_current_peek_offset, 0.0, PEEK_SPEED * delta)
+
+	camera.offset.y = _current_peek_offset
 
 	_update_animation()
 	_dust.update(self, landed, is_wall_sliding, dash_timer, dash_direction)
