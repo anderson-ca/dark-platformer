@@ -121,6 +121,32 @@ World (Node2D)
 
 ---
 
+## Script Structure
+
+```
+scripts/
+├── enemies/
+│   └── ghoul.gd
+├── skills/
+│   ├── base_projectile.gd
+│   ├── base_summon.gd
+│   ├── [individual summon scripts]
+│   └── [individual projectile scripts]
+├── utils/
+│   └── vfx_utils.gd
+├── player.gd
+├── player_input.gd
+├── player_animation.gd
+├── player_dust.gd
+├── world.gd
+├── room_data.gd
+├── hud.gd
+├── moving_platform.gd
+└── crumbling_platform.gd
+```
+
+---
+
 ## Debugging Checklist
 
 Before reporting "it's broken":
