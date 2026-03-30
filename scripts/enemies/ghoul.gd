@@ -563,23 +563,8 @@ func apply_petrify(duration: float) -> void:
 
 	# Save original material and apply stone shader
 	_petrify_original_material = animated_sprite.material
-	var shader := Shader.new()
-	shader.code = """
-shader_type canvas_item;
-
-uniform vec3 stone_color : source_color = vec3(0.196, 0.184, 0.157);
-
-void fragment() {
-	vec4 tex = texture(TEXTURE, UV);
-	float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-	vec3 gray = vec3(lum);
-	vec3 stoned = mix(gray, stone_color, 0.7);
-	stoned *= 0.6;
-	COLOR = vec4(stoned, tex.a);
-}
-"""
 	var mat := ShaderMaterial.new()
-	mat.shader = shader
+	mat.shader = load("res://shaders/petrify_stone.gdshader")
 	mat.set_shader_parameter("stone_color", Vector3(0.196, 0.184, 0.157))
 	animated_sprite.material = mat
 
@@ -696,44 +681,8 @@ func _end_root() -> void:
 
 
 func _create_rim_light() -> void:
-	var shader := Shader.new()
-	shader.code = """
-shader_type canvas_item;
-
-uniform vec4 rim_color : source_color = vec4(0.28, 0.07, 0.42, 0.4);
-uniform float rim_width : hint_range(0.0, 5.0) = 0.8;
-
-void fragment() {
-	vec4 tex_color = texture(TEXTURE, UV);
-
-	// Recolor red pixels to purple (eyes and blood effects)
-	// Red pixels: r > 0.3, r > g * 2.0, r > b * 2.0
-	float is_red = step(0.3, tex_color.r) * step(tex_color.g * 2.0, tex_color.r) * step(tex_color.b * 2.0, tex_color.r) * tex_color.a;
-	vec3 purpled = vec3(tex_color.r * 0.5, tex_color.g * 0.3, tex_color.r * 0.8 + 0.1);
-	tex_color.rgb = mix(tex_color.rgb, purpled, is_red);
-
-	// Rim light edge detection
-	vec2 size = TEXTURE_PIXEL_SIZE * rim_width;
-	float neighbor = 0.0;
-
-	neighbor += texture(TEXTURE, UV + vec2(-size.x, 0)).a;
-	neighbor += texture(TEXTURE, UV + vec2(size.x, 0)).a;
-	neighbor += texture(TEXTURE, UV + vec2(0, -size.y)).a;
-	neighbor += texture(TEXTURE, UV + vec2(0, size.y)).a;
-	neighbor += texture(TEXTURE, UV + vec2(-size.x, -size.y)).a;
-	neighbor += texture(TEXTURE, UV + vec2(size.x, -size.y)).a;
-	neighbor += texture(TEXTURE, UV + vec2(-size.x, size.y)).a;
-	neighbor += texture(TEXTURE, UV + vec2(size.x, size.y)).a;
-
-	neighbor = min(neighbor, 1.0);
-
-	float rim_mask = neighbor * (1.0 - tex_color.a);
-	vec4 rim = rim_color * rim_mask;
-	COLOR = mix(rim, tex_color, tex_color.a);
-}
-"""
 	_rim_material = ShaderMaterial.new()
-	_rim_material.shader = shader
+	_rim_material.shader = load("res://shaders/ghoul_rim_light.gdshader")
 	_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, 0.0))
 	_rim_material.set_shader_parameter("rim_width", 0.8)
 	animated_sprite.material = _rim_material

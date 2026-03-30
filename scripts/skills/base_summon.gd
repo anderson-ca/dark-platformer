@@ -135,25 +135,8 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 
 
 func _apply_environment_color_match() -> void:
-	var shader := Shader.new()
-	shader.code = """
-shader_type canvas_item;
-
-uniform vec3 target_color : source_color = vec3(0.196, 0.184, 0.157);
-uniform float blend_amount : hint_range(0.0, 1.0) = 0.6;
-uniform float darken_amount : hint_range(0.0, 1.0) = 0.4;
-
-void fragment() {
-	vec4 tex_color = texture(TEXTURE, UV);
-	float lum = dot(tex_color.rgb, vec3(0.299, 0.587, 0.114));
-	vec3 desat = vec3(lum) * 0.7 + tex_color.rgb * 0.3;
-	vec3 tinted = mix(desat, target_color * (lum + 0.3), blend_amount);
-	tinted *= (1.0 - darken_amount);
-	COLOR = vec4(tinted, tex_color.a);
-}
-"""
 	var mat := ShaderMaterial.new()
-	mat.shader = shader
+	mat.shader = load("res://shaders/summon_env_color.gdshader")
 	mat.set_shader_parameter("target_color", Vector3(environment_base_color.r, environment_base_color.g, environment_base_color.b))
 	mat.set_shader_parameter("blend_amount", 0.65)
 	mat.set_shader_parameter("darken_amount", 0.4)
@@ -177,40 +160,8 @@ func _add_outline_sprite() -> void:
 	outline.position = animated_sprite.position
 	outline.scale = animated_sprite.scale
 
-	var shader := Shader.new()
-	shader.code = """
-shader_type canvas_item;
-
-uniform vec4 outline_color : source_color = vec4(0.7, 0.2, 1.0, 1.0);
-uniform float outline_width : hint_range(0.0, 10.0) = 2.0;
-uniform float pulse : hint_range(0.0, 1.0) = 1.0;
-
-void fragment() {
-	vec2 size = TEXTURE_PIXEL_SIZE * outline_width;
-	float outline = 0.0;
-
-	outline += texture(TEXTURE, UV + vec2(-size.x, 0)).a;
-	outline += texture(TEXTURE, UV + vec2(size.x, 0)).a;
-	outline += texture(TEXTURE, UV + vec2(0, -size.y)).a;
-	outline += texture(TEXTURE, UV + vec2(0, size.y)).a;
-	outline += texture(TEXTURE, UV + vec2(-size.x, -size.y)).a;
-	outline += texture(TEXTURE, UV + vec2(size.x, -size.y)).a;
-	outline += texture(TEXTURE, UV + vec2(-size.x, size.y)).a;
-	outline += texture(TEXTURE, UV + vec2(size.x, size.y)).a;
-
-	outline = min(outline, 1.0);
-
-	vec4 tex_color = texture(TEXTURE, UV);
-	float outline_mask = outline * (1.0 - tex_color.a);
-
-	vec4 glow = outline_color * outline_mask * pulse;
-	glow.a *= 0.8;
-
-	COLOR = glow;
-}
-"""
 	var mat := ShaderMaterial.new()
-	mat.shader = shader
+	mat.shader = load("res://shaders/summon_aura_outline.gdshader")
 	mat.set_shader_parameter("outline_color", aura_color)
 	mat.set_shader_parameter("outline_width", 0.8)
 	print("Summon outline: color=", aura_color, " width=0.8 (was 1.2)")
