@@ -6,7 +6,7 @@ static var ROOMS: Array[Dictionary] = [
 		"name": "Forest Edge",
 		"width": 5600, "height": 720,
 		"spawn": Vector2(100, 631),
-		"fall_respawn_y": 820,
+		"fall_respawn_y": 2000,
 		"solids": [
 			# === MAIN GROUND — flat combat zone ===
 			{"x": 0, "y": 640, "w": 2000, "h": 80},
