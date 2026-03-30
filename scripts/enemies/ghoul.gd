@@ -110,25 +110,6 @@ func _ready() -> void:
 	_create_rim_light()
 	_create_eye_light()
 
-	# Verify alignment at runtime
-	var col_shape := $CollisionShape2D
-	var col_rect := col_shape.shape as RectangleShape2D
-	var col_bottom: float = col_shape.position.y + col_rect.size.y / 2.0
-	print("Ghoul collision: pos=", col_shape.position, " size=", col_rect.size, " bottom_y=", col_bottom)
-	print("Ghoul sprite: pos=", animated_sprite.position, " (adjust Y to move feet up/down)")
-	if _rim_material:
-		print("Ghoul rim shader: rim_color=", _rim_material.get_shader_parameter("rim_color"), " rim_width=", _rim_material.get_shader_parameter("rim_width"))
-
-	# Verify hitbox size and collision layer
-	var hitbox_shape := $Hitbox/CollisionShape2D
-	var hitbox_rect := hitbox_shape.shape as RectangleShape2D
-	var hitbox_area := $Hitbox as Area2D
-	print("Ghoul hitbox: size=", hitbox_rect.size, " pos=", hitbox_shape.position, " collision_layer=", hitbox_area.collision_layer)
-
-	print("Ghoul ready: health=", health, " soft_sep=", SOFT_SEPARATION_DIST, "px force=", SOFT_SEPARATION_FORCE)
-	print("  Shield range=", 45, "px repel=", 15, " | max_attacks=", MAX_CONSECUTIVE_ATTACKS, " cooldown=", ATTACK_COOLDOWN, "s")
-	print("  State flow: IDLE -> WAKE -> CHASE -> ATTACK (x", MAX_CONSECUTIVE_ATTACKS, ") -> RECOVER -> REPOSITION -> CHASE")
-
 	# Apply spawn variation to prevent synchronized patrol behavior
 	if has_meta("initial_patrol_dir"):
 		_patrol_dir = get_meta("initial_patrol_dir")
@@ -137,7 +118,6 @@ func _ready() -> void:
 		patrol_speed = 40.0 + offset
 	patrol_edge_pause = randf_range(0.5, 1.2)
 	_patrol_pause_timer = randf_range(0.0, 1.5)
-	print("  Patrol: speed=", patrol_speed, " dir=", _patrol_dir, " edge_pause=", snapped(patrol_edge_pause, 0.1))
 
 
 func _setup_animations() -> void:
@@ -354,7 +334,6 @@ func _chase_player(_delta: float) -> void:
 	# Ledge detection — don't chase off edges
 	if is_on_floor() and _check_ledge_ahead(facing):
 		velocity.x = 0.0
-		print("Ghoul ledge detected — stopping")
 		return
 
 	velocity.x = facing * SPEED
@@ -381,7 +360,6 @@ func _patrol(delta: float) -> void:
 		attack_area.scale.x = _patrol_dir
 		_patrol_pause_timer = patrol_edge_pause
 		velocity.x = 0.0
-		print("Ghoul patrolling — reversed at edge")
 		return
 
 	velocity.x = _patrol_dir * patrol_speed
@@ -479,10 +457,7 @@ func take_damage_with_knockback(amount: int, knockback: Vector2) -> void:
 	_spawn_hit_effect()
 	var actual_damage: int = int(amount * _petrify_damage_multiplier)
 	health -= actual_damage
-	if is_petrified:
-		print("Ghoul petrified 2x damage: ", amount, " -> ", actual_damage)
 	knockback_velocity = knockback
-	print("Ghoul knockback applied: ", knockback, " health=", health)
 	if health <= 0:
 		_enter_state(State.DEATH)
 	elif state != State.ATTACK:
@@ -499,9 +474,6 @@ func take_damage(from_position: Vector2) -> void:
 	_spawn_hit_effect()
 	var actual_damage: int = int(1 * _petrify_damage_multiplier)
 	health -= actual_damage
-	if is_petrified:
-		print("Ghoul petrified 2x damage: 1 -> ", actual_damage)
-	print("Ghoul hit! health=", health, " (during ", State.keys()[state], ")")
 	# Knockback away from damage source
 	var kb_dir: float = sign(global_position.x - from_position.x)
 	if kb_dir == 0.0:
@@ -579,13 +551,11 @@ func apply_petrify(duration: float) -> void:
 		_petrify_overlay.position = Vector2(0, -16)
 		_petrify_overlay.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		add_child(_petrify_overlay)
-		print("Ghoul: stone overlay applied")
 
 
 func _end_petrify() -> void:
 	is_petrified = false
 	_petrify_damage_multiplier = 1.0
-	print("Ghoul petrify ENDED — restoring normal state")
 
 	# Remove stone shader
 	animated_sprite.material = _petrify_original_material
@@ -686,7 +656,6 @@ func _create_rim_light() -> void:
 	_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, 0.0))
 	_rim_material.set_shader_parameter("rim_width", 0.8)
 	animated_sprite.material = _rim_material
-	print("Ghoul rim light shader applied")
 
 
 func _create_eye_light() -> void:
@@ -705,7 +674,6 @@ func _create_eye_light() -> void:
 			img.set_pixel(x, y, Color(1, 1, 1, alpha))
 	_eye_light.texture = ImageTexture.create_from_image(img)
 	add_child(_eye_light)
-	print("Ghoul eye light created")
 
 
 func _attack_telegraph_flare() -> void:
@@ -719,7 +687,6 @@ func _attack_telegraph_flare() -> void:
 			if _rim_material:
 				_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, val))
 		, 0.4, 1.0, 0.2)
-	print("Ghoul attack telegraph — eyes flare")
 
 
 func _attack_telegraph_dim() -> void:
@@ -733,7 +700,6 @@ func _attack_telegraph_dim() -> void:
 			if _rim_material:
 				_rim_material.set_shader_parameter("rim_color", Color(0.28, 0.07, 0.42, val))
 		, 1.0, 0.4, 0.3)
-	print("Ghoul attack telegraph — eyes dim")
 
 
 func _on_attack_area_body_entered(body: Node2D) -> void:

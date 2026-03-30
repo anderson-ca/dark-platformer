@@ -158,7 +158,6 @@ func _setup_player_light() -> void:
 	light.shadow_enabled = false
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
-	print("PlayerLight: energy=2.2, scale=1.5, color=", light.color)
 
 
 func _setup_attack_hitbox() -> void:
@@ -192,7 +191,6 @@ func _setup_shield_zone() -> void:
 	col.position = Vector2(SHIELD_ZONE_WIDTH / 2.0, -8)  # in front of player
 	_shield_zone.add_child(col)
 	add_child(_shield_zone)
-	print("Shield wall: radius=", SHIELD_ZONE_WIDTH, "px, 360° protection, NO push force, ghoul stops in place")
 
 
 func _setup_attack_glow() -> void:
@@ -234,7 +232,6 @@ func _setup_attack_label() -> void:
 	else:
 		add_child(_attack_label)
 	_update_debug_label()
-	print("Skill switcher: Tab=attack, `=summon")
 
 
 func _update_debug_label() -> void:
@@ -248,7 +245,6 @@ func _update_debug_label() -> void:
 func _repel_enemies_from_shield() -> void:
 	# Hard wall: only block enemies on the side the player is facing
 	var shield_edge_x: float = global_position.x + facing * SHIELD_ZONE_WIDTH
-	print("Shield wall: facing=", facing, " edge_x=", shield_edge_x, " player_x=", global_position.x)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		var enemy_x: float = enemy.global_position.x
 		# Only affect enemies on the side we're facing
@@ -689,7 +685,7 @@ func _physics_process(delta: float) -> void:
 			print("Started channeling summon...")
 		elif is_channeling_summon and not summon_triggered_this_channel:
 			if summon_global_cooldown > 0.0:
-				print("Summon cooldown: ", snapped(summon_global_cooldown, 0.1), "s remaining")
+					pass  # cooldown active
 			else:
 				summon_channel_timer += delta
 				if summon_channel_timer >= SUMMON_CHANNEL_TIME:
@@ -993,7 +989,6 @@ func _update_animation() -> void:
 		anim = "run"
 
 	if animated_sprite.animation != anim or not animated_sprite.is_playing():
-		print("Animation: ", anim)
 		animated_sprite.play(anim)
 
 

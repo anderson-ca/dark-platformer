@@ -1,3 +1,4 @@
+# UNUSED — kept for future projectile types
 class_name ArrowProjectile
 extends BaseProjectile
 

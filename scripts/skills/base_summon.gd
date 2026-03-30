@@ -59,7 +59,6 @@ func _ready() -> void:
 	if magical_aura_enabled:
 		_apply_magical_aura()
 
-	print(summon_name, " summoned, direction: ", direction)
 
 
 func _process(delta: float) -> void:
@@ -69,7 +68,6 @@ func _process(delta: float) -> void:
 			if not _hitbox_enabled:
 				hitbox.monitoring = true
 				_hitbox_enabled = true
-				print(summon_name, " hitbox ACTIVE frame ", current_frame)
 		else:
 			if _hitbox_enabled:
 				hitbox.monitoring = false
@@ -131,7 +129,6 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		else:
 			enemy.take_damage(global_position)
 
-		print(summon_name, " hit enemy: ", enemy.name)
 
 
 func _apply_environment_color_match() -> void:
@@ -141,12 +138,10 @@ func _apply_environment_color_match() -> void:
 	mat.set_shader_parameter("blend_amount", 0.65)
 	mat.set_shader_parameter("darken_amount", 0.4)
 	animated_sprite.material = mat
-	print(summon_name, ": Applied environment color match -> ", environment_base_color)
 
 
 func _apply_magical_aura() -> void:
 	_add_outline_sprite()
-	print(summon_name, ": Magical aura enabled, color=", aura_color)
 
 
 func _add_outline_sprite() -> void:
@@ -164,7 +159,6 @@ func _add_outline_sprite() -> void:
 	mat.shader = load("res://shaders/summon_aura_outline.gdshader")
 	mat.set_shader_parameter("outline_color", aura_color)
 	mat.set_shader_parameter("outline_width", 0.8)
-	print("Summon outline: color=", aura_color, " width=0.8 (was 1.2)")
 	outline.material = mat
 
 	add_child(outline)

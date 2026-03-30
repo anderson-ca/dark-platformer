@@ -50,25 +50,20 @@ func _ready() -> void:
 	for layer in _parallax_bg.get_children():
 		if layer is ParallaxLayer:
 			layer.modulate = _base_bg_darkness
-	print("ParallaxBackground layers modulate: ", _base_bg_darkness)
 
 	# Dark atmosphere — darken everything, player/campfire lights punch through
 	_canvas_modulate = CanvasModulate.new()
 	_canvas_modulate.name = "DarkAtmosphere"
 	_canvas_modulate.color = _base_darkness
 	add_child(_canvas_modulate)
-	print("CanvasModulate: ", _canvas_modulate.color)
 
 	hud_node.set_player(player)
 
 	# Lightning timer
 	_lightning_timer = randf_range(8.0, 20.0)
-	print("Lightning system: multi-burst via CanvasModulate, timer=", _lightning_timer, "s")
 
 	load_room(0)
 
-	print("Player health: ", player.current_health, "/", player.MAX_HEALTH)
-	print("Shield blocks attacks: YES")
 
 
 func load_room(index: int) -> void:
@@ -204,10 +199,8 @@ func _create_campfire(pos: Vector2) -> void:
 	# Campfire light — warm orange glow
 	var fire_light := PointLight2D.new()
 	fire_light.name = "FireLight"
-	print("FireLight BEFORE: color=Color(1.0, 0.7, 0.3), energy=1.2")
 	fire_light.color = Color(1.0, 0.5, 0.2)
 	fire_light.energy = 1.5
-	print("FireLight AFTER: color=", fire_light.color, ", energy=", fire_light.energy)
 	fire_light.texture = _make_light_texture()
 	fire_light.texture_scale = 1.5
 	fire_light.position = Vector2(0, -FRAME_H * sc * 0.5)
@@ -215,8 +208,6 @@ func _create_campfire(pos: Vector2) -> void:
 	fire_light.blend_mode = Light2D.BLEND_MODE_ADD
 	campfire.add_child(fire_light)
 
-	print("Campfire: Custom Fires-Wild.png ", fire_tex.get_width(), "x", fire_tex.get_height(), ", ", frame_count, " frames of ", FRAME_W, "x", FRAME_H)
-	print("  scale=", sc, " pos=", pos, " fire=", fire.position, " pig=", pig.position)
 
 
 func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
@@ -228,15 +219,12 @@ func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
 	var cols: int = int(ceil(gw / float(TILE_SIZE)))
 	var fill_rows: int = 3  # 3 rows of fill = 192px below surface
 	var total_rows: int = 1 + fill_rows  # 1 surface + 3 fill
-	var expected: int = cols * total_rows
-	var placed: int = 0
 
 	var container := Node2D.new()
 	container.name = "GroundTiles"
 	container.z_index = -1
 	room_geometry.add_child(container)
 
-	# Brute force: every cell gets a tile, no exceptions
 	for r in range(total_rows):
 		var tile_y: float = gy - TILE_SIZE + r * TILE_SIZE
 		for c in range(cols):
@@ -245,10 +233,7 @@ func _create_ground_tiles(gx: float, gy: float, gw: float) -> void:
 			var sprite := _make_tile_sprite(coord)
 			sprite.position = Vector2(tile_x, tile_y)
 			container.add_child(sprite)
-			placed += 1
 
-	print("Ground tiles: ", cols, "x", total_rows, " = ", placed, " placed (expected ", expected, ")")
-	print("  X: ", gx, " to ", gx + cols * TILE_SIZE, "  Y: ", gy - TILE_SIZE, " to ", gy - TILE_SIZE + total_rows * TILE_SIZE)
 
 
 func _create_platform_tiles(px: float, py: float, pw: float) -> void:
@@ -269,7 +254,6 @@ func _create_platform_tiles(px: float, py: float, pw: float) -> void:
 		var fill := _make_tile_sprite(fill_coord)
 		fill.position = Vector2(tile_x, py)
 		container.add_child(fill)
-	print("Platform tiles: ", cols, " cols x 2 rows at y=", py)
 
 
 func _make_tile_sprite(atlas_coord: Vector2i) -> Sprite2D:

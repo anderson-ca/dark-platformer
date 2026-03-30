@@ -2,17 +2,6 @@ class_name PlayerInput
 
 
 static func register_all_actions() -> void:
-	var action_names := ["move_left", "move_right", "jump", "dash", "attack", "shield", "shockwave", "switch_attack", "switch_summon"]
-
-	# Diagnostic: print existing actions before we touch anything
-	for action_name in action_names:
-		if InputMap.has_action(action_name):
-			print("ACTION EXISTS: ", action_name, " events=", InputMap.action_get_events(action_name).size())
-			for ev in InputMap.action_get_events(action_name):
-				print("  -> ", ev.get_class(), " ", ev)
-		else:
-			print("ACTION MISSING: ", action_name)
-
 	var actions := {
 		"move_left": [],
 		"move_right": [],
@@ -96,21 +85,3 @@ static func register_all_actions() -> void:
 	InputMap.action_set_deadzone("move_left", 0.2)
 	InputMap.action_set_deadzone("move_right", 0.2)
 
-	# Verify move actions have all events
-	print("move_left events: ", InputMap.action_get_events("move_left").size())
-	print("move_right events: ", InputMap.action_get_events("move_right").size())
-	for ev in InputMap.action_get_events("move_left"):
-		print("  move_left -> ", ev.get_class())
-	for ev in InputMap.action_get_events("move_right"):
-		print("  move_right -> ", ev.get_class())
-
-	print("INPUT MAP:")
-	print("  move_left = A + LeftStick + DPadLeft")
-	print("  move_right = D + LeftStick + DPadRight")
-	print("  jump = Space + A_Button + DPadUp")
-	print("  attack = J + X_Button")
-	print("  shield = K + Y_Button")
-	print("  shockwave = L + B_Button")
-	print("  dash = Shift + RT")
-	print("  switch_attack = Tab + L1")
-	print("  switch_summon = ` + R1")

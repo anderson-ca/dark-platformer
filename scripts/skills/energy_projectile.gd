@@ -1,3 +1,4 @@
+# UNUSED — kept for future projectile types
 class_name EnergyProjectile
 extends BaseProjectile
 

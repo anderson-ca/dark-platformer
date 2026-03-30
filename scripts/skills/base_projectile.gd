@@ -54,14 +54,10 @@ func _ready() -> void:
 	light.shadow_enabled = false
 	light.blend_mode = Light2D.BLEND_MODE_ADD
 	add_child(light)
-	print("Projectile color: dark red (light + sprite + muzzle + hit)")
-	print("Projectile sprite scaled to 70% (0.7)")
 
 	area_entered.connect(_on_area_entered)
 
 	get_tree().create_timer(lifetime).timeout.connect(_on_lifetime_expired)
-
-	print(projectile_name, " projectile spawned, direction: ", direction)
 
 
 func _physics_process(delta: float) -> void:

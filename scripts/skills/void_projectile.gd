@@ -1,3 +1,4 @@
+# UNUSED — kept for future projectile types
 class_name VoidProjectile
 extends BaseProjectile
 
