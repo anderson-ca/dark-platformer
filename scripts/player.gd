@@ -105,10 +105,7 @@ var _key_shockwave_just: bool = false
 var _attack_glow_light: PointLight2D
 
 # Dust animated sprites
-var _dust_run: AnimatedSprite2D
-var _dust_land: AnimatedSprite2D
-var _dust_wall: AnimatedSprite2D
-var _dust_dash: AnimatedSprite2D
+var _dust: PlayerDust = PlayerDust.new()
 var _was_on_floor: bool = false
 var _was_dashing: bool = false
 var _dash_ghost_timer: float = 0.0
@@ -116,118 +113,7 @@ const DASH_GHOST_INTERVAL := 0.03
 
 
 func _register_input_actions() -> void:
-	var action_names := ["move_left", "move_right", "jump", "dash", "attack", "shield", "shockwave", "switch_attack", "switch_summon"]
-
-	# Diagnostic: print existing actions before we touch anything
-	for action_name in action_names:
-		if InputMap.has_action(action_name):
-			print("ACTION EXISTS: ", action_name, " events=", InputMap.action_get_events(action_name).size())
-			for ev in InputMap.action_get_events(action_name):
-				print("  -> ", ev.get_class(), " ", ev)
-		else:
-			print("ACTION MISSING: ", action_name)
-
-	var actions := {
-		"move_left": [],
-		"move_right": [],
-		"jump": [],
-		"dash": [],
-		"attack": [],
-		"shield": [],
-		"shockwave": [],
-		"switch_attack": [],
-		"switch_summon": [],
-	}
-
-	# Keyboard events
-	var key_map := {
-		"move_left": KEY_A,
-		"move_right": KEY_D,
-		"jump": KEY_SPACE,
-		"dash": KEY_SHIFT,
-		"attack": KEY_J,
-		"shield": KEY_K,
-		"shockwave": KEY_L,
-		"switch_attack": KEY_TAB,
-		"switch_summon": KEY_QUOTELEFT,
-	}
-	for action_name in key_map:
-		var ev := InputEventKey.new()
-		ev.physical_keycode = key_map[action_name]
-		actions[action_name].append(ev)
-
-	# Joypad button events
-	var btn_map := {
-		"jump": JOY_BUTTON_A,
-		"attack": JOY_BUTTON_X,
-		"shield": JOY_BUTTON_Y,
-		"shockwave": JOY_BUTTON_B,
-		"switch_attack": JOY_BUTTON_LEFT_SHOULDER,
-		"switch_summon": JOY_BUTTON_RIGHT_SHOULDER,
-	}
-	for action_name in btn_map:
-		var ev := InputEventJoypadButton.new()
-		ev.button_index = btn_map[action_name]
-		actions[action_name].append(ev)
-
-	# D-pad movement + jump
-	var dpad_map := {
-		"move_left": JOY_BUTTON_DPAD_LEFT,
-		"move_right": JOY_BUTTON_DPAD_RIGHT,
-		"jump": JOY_BUTTON_DPAD_UP,
-	}
-	for action_name in dpad_map:
-		var ev := InputEventJoypadButton.new()
-		ev.button_index = dpad_map[action_name]
-		actions[action_name].append(ev)
-
-	# Left stick axes
-	var axis_left := InputEventJoypadMotion.new()
-	axis_left.axis = JOY_AXIS_LEFT_X
-	axis_left.axis_value = -1.0
-	actions["move_left"].append(axis_left)
-
-	var axis_right := InputEventJoypadMotion.new()
-	axis_right.axis = JOY_AXIS_LEFT_X
-	axis_right.axis_value = 1.0
-	actions["move_right"].append(axis_right)
-
-	# Dash on right trigger
-	var rt := InputEventJoypadMotion.new()
-	rt.axis = JOY_AXIS_TRIGGER_RIGHT
-	rt.axis_value = 0.5
-	actions["dash"].append(rt)
-
-	# Erase and recreate all actions to ensure full control
-	for action_name in actions:
-		if InputMap.has_action(action_name):
-			InputMap.erase_action(action_name)
-		InputMap.add_action(action_name)
-		for ev in actions[action_name]:
-			InputMap.action_add_event(action_name, ev)
-
-	# Set deadzone for stick movement
-	InputMap.action_set_deadzone("move_left", 0.2)
-	InputMap.action_set_deadzone("move_right", 0.2)
-
-	# Verify move actions have all events
-	print("move_left events: ", InputMap.action_get_events("move_left").size())
-	print("move_right events: ", InputMap.action_get_events("move_right").size())
-	for ev in InputMap.action_get_events("move_left"):
-		print("  move_left -> ", ev.get_class())
-	for ev in InputMap.action_get_events("move_right"):
-		print("  move_right -> ", ev.get_class())
-
-	print("INPUT MAP:")
-	print("  move_left = A + LeftStick + DPadLeft")
-	print("  move_right = D + LeftStick + DPadRight")
-	print("  jump = Space + A_Button + DPadUp")
-	print("  attack = J + X_Button")
-	print("  shield = K + Y_Button")
-	print("  shockwave = L + B_Button")
-	print("  dash = Shift + RT")
-	print("  switch_attack = Tab + L1")
-	print("  switch_summon = ` + R1")
+	PlayerInput.register_all_actions()
 
 
 func _ready() -> void:
@@ -240,7 +126,7 @@ func _ready() -> void:
 	set_collision_mask_value(2, false)
 	set_collision_mask_value(3, true)
 	_setup_sprite_frames()
-	_setup_dust_sprites()
+	_dust.setup(self)
 	_setup_player_light()
 	_setup_attack_hitbox()
 	_setup_shield_zone()
@@ -250,56 +136,7 @@ func _ready() -> void:
 
 
 func _setup_sprite_frames() -> void:
-	var sf := SpriteFrames.new()
-
-	if sf.has_animation("default"):
-		sf.remove_animation("default")
-
-	# [anim_name, file_path, frame_count, fps, loop]
-	var P := "res://assets/sprites/player/dark_sage/"
-	var anims := [
-		["idle",        P + "The Evil Sage-Idle Front.png",  9, 8,  true],
-		["run",         P + "The Evil Sage-Run.png",         8, 10, true],
-		["jump",        P + "The Evil Sage-Jump.png",        4, 10, false],
-		["fall",        P + "The Evil Sage-Fall.png",        4, 8,  true],
-		["dash",        P + "The Evil Sage-Dash.png",        4, 14, false],
-		["wall_slide",  P + "The Evil Sage-Wall Slide.png",  4, 8,  true],
-		["death",       P + "The Evil Sage-Death.png",       8, 8,  false],
-		["hit",         P + "The Evil Sage-hit.png",         2, 8,  false],
-		["attack1",     P + "The Evil Sage-Orb attack.png",  8, 12, false, 0],
-		["attack",      P + "The Evil Sage-Orb attack.png", 16, 12, false, 0],
-		["shield_up",   P + "The Evil Sage-Shield up.png",    4, 10, false],
-		["shield_hold", P + "The Evil Sage-shield hold.png",  8, 10, true],
-		["shield_down", P + "The Evil Sage-shield down.png",  4, 10, false],
-		["shockwave",   P + "The Evil Sage-Shockwave.png",   14, 12, false],
-		["run_attack",  P + "The Evil Sage-Run-Attack.png",  8, 10, true],
-		["jump_attack", P + "The Evil Sage-Jump-Attack.png", 4, 10, false],
-	]
-
-	for anim_def in anims:
-		var anim_name: String = anim_def[0]
-		var file_path: String = anim_def[1]
-		var frame_count: int = anim_def[2]
-		var fps: float = anim_def[3]
-		var looping: bool = anim_def[4]
-		var start_frame: int = anim_def[5] if anim_def.size() > 5 else 0
-
-		var texture := load(file_path) as Texture2D
-
-		sf.add_animation(anim_name)
-		sf.set_animation_speed(anim_name, fps)
-		sf.set_animation_loop(anim_name, looping)
-
-		for i in range(frame_count):
-			var atlas_tex := AtlasTexture.new()
-			atlas_tex.atlas = texture
-			atlas_tex.region = Rect2((start_frame + i) * FRAME_W, 0, FRAME_W, FRAME_H)
-			sf.add_frame(anim_name, atlas_tex)
-
-	animated_sprite.sprite_frames = sf
-	for anim_def in anims:
-		print("  ", anim_def[0], ": ", anim_def[2], " frames @ ", anim_def[3], " FPS -> ", anim_def[1])
-	print("Combo: attack1 (8 frames, single orb) | full attack (16 frames, both orbs) | window=", COMBO_WINDOW_TIME, "s")
+	animated_sprite.sprite_frames = PlayerAnimation.create_sprite_frames()
 	animated_sprite.scale = Vector2(1.5, 1.5)
 	# Sage: character at y=107-121 in 192x192 frame, feet at y=121
 	# Frame center y=96. Collision bottom = 9px below origin.
@@ -662,66 +499,6 @@ func _play_death() -> void:
 	hit_hazard.emit()
 
 
-func _setup_dust_sprites() -> void:
-	var E := "res://assets/effects/movement/"
-	var feet_y := 9.0  # collision bottom: center(-1) + half-height(10)
-	var DUST_FRAME := 128
-
-	# Helper: build SpriteFrames from a horizontal strip of 128x128 frames
-	var make_dust_frames := func(path: String, anim_name: String, frame_count: int, fps: float, loop: bool) -> SpriteFrames:
-		var sf := SpriteFrames.new()
-		if sf.has_animation("default"):
-			sf.remove_animation("default")
-		sf.add_animation(anim_name)
-		sf.set_animation_speed(anim_name, fps)
-		sf.set_animation_loop(anim_name, loop)
-		var tex := load(path) as Texture2D
-		for i in range(frame_count):
-			var atlas := AtlasTexture.new()
-			atlas.atlas = tex
-			atlas.region = Rect2(i * DUST_FRAME, 0, DUST_FRAME, DUST_FRAME)
-			sf.add_frame(anim_name, atlas)
-		return sf
-
-	# Helper: create a dust AnimatedSprite2D
-	var make_dust_sprite := func(node_name: String, sf: SpriteFrames, pos: Vector2, sc: Vector2) -> AnimatedSprite2D:
-		var sprite := AnimatedSprite2D.new()
-		sprite.name = node_name
-		sprite.sprite_frames = sf
-		sprite.centered = true
-		sprite.position = pos
-		sprite.z_index = -1
-		sprite.scale = sc
-		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		sprite.visible = false
-		add_child(sprite)
-		return sprite
-
-	# 1. Run dust — jump_land_dust.png at 60% scale, looping, 10 fps
-	var run_sf: SpriteFrames = make_dust_frames.call(E + "jump_land_dust.png", "run", 5, 10.0, true)
-	_dust_run = make_dust_sprite.call("DustRun", run_sf, Vector2(0, feet_y), Vector2(0.1, 0.1))
-
-	# 2. Land dust — jump_land_dust.png, one-shot, 12 fps
-	var land_sf: SpriteFrames = make_dust_frames.call(E + "jump_land_dust.png", "land", 5, 12.0, false)
-	_dust_land = make_dust_sprite.call("DustLand", land_sf, Vector2(0, feet_y), Vector2(0.125, 0.125))
-	_dust_land.animation_finished.connect(_on_land_dust_finished)
-
-	# 3. Wall dust — wall_dust.png, looping, 10 fps
-	var wall_sf: SpriteFrames = make_dust_frames.call(E + "wall_dust.png", "wall", 6, 10.0, true)
-	_dust_wall = make_dust_sprite.call("DustWall", wall_sf, Vector2.ZERO, Vector2(0.125, 0.125))
-
-	# 4. Dash dust — floor_dash_dust.png, one-shot, 15 fps
-	var dash_sf: SpriteFrames = make_dust_frames.call(E + "floor_dash_dust.png", "dash", 7, 15.0, false)
-	_dust_dash = make_dust_sprite.call("DustDash", dash_sf, Vector2(0, feet_y), Vector2(0.125, 0.125))
-	_dust_dash.animation_finished.connect(_on_dash_dust_finished)
-
-
-func _on_land_dust_finished() -> void:
-	_dust_land.visible = false
-
-
-func _on_dash_dust_finished() -> void:
-	_dust_dash.visible = false
 
 
 func _input(event: InputEvent) -> void:
@@ -1033,7 +810,7 @@ void fragment() {
 				move_and_slide()
 				_was_on_floor = is_on_floor()
 				_update_animation()
-				_update_dust(false)
+				_dust.update(self, false, is_wall_sliding, dash_timer, dash_direction)
 				return
 		# Frame-synced hitbox + VFX: only active during orb impact frames
 		var f := animated_sprite.frame
@@ -1094,7 +871,7 @@ void fragment() {
 		move_and_slide()
 		_was_on_floor = is_on_floor()
 		_update_animation()
-		_update_dust(false)
+		_dust.update(self, false, is_wall_sliding, dash_timer, dash_direction)
 		return
 
 	# Dash just ended — remove i-frames and purple tint (unless in hit recovery)
@@ -1121,7 +898,7 @@ void fragment() {
 			move_and_slide()
 			_was_on_floor = is_on_floor()
 			_update_animation()
-			_update_dust(false)
+			_dust.update(self, false, is_wall_sliding, dash_timer, dash_direction)
 			return
 
 	# --- Gravity ---
@@ -1195,7 +972,8 @@ void fragment() {
 	_was_on_floor = is_on_floor()
 
 	_update_animation()
-	_update_dust(landed)
+	_dust.update(self, landed, is_wall_sliding, dash_timer, dash_direction)
+	_was_dashing = dash_timer > 0.0
 
 
 func _update_animation() -> void:
@@ -1241,49 +1019,3 @@ func _update_animation() -> void:
 		animated_sprite.play(anim)
 
 
-func _update_dust(landed: bool) -> void:
-	var on_floor := is_on_floor()
-	var feet_y := 9.0
-
-	# --- Run dust: play when running on ground, not dashing ---
-	var is_running: bool = on_floor and abs(velocity.x) > 30 and dash_timer <= 0.0
-	if is_running:
-		_dust_run.flip_h = velocity.x > 0.0
-		_dust_run.position = Vector2(-sign(velocity.x) * 4.0, feet_y)
-		if not _dust_run.visible:
-			_dust_run.visible = true
-			_dust_run.play("run")
-	else:
-		if _dust_run.visible:
-			_dust_run.visible = false
-			_dust_run.stop()
-
-	# --- Land dust: one-shot on landing ---
-	if landed:
-		_dust_land.position = Vector2(0, feet_y)
-		_dust_land.visible = true
-		_dust_land.frame = 0
-		_dust_land.play("land")
-
-	# --- Wall dust: loop while wall sliding ---
-	if is_wall_sliding:
-		var wn := get_wall_normal()
-		_dust_wall.position = Vector2(-wn.x * 6.0, -2.0)
-		_dust_wall.flip_h = wn.x > 0.0
-		if not _dust_wall.visible:
-			_dust_wall.visible = true
-			_dust_wall.play("wall")
-	else:
-		if _dust_wall.visible:
-			_dust_wall.visible = false
-			_dust_wall.stop()
-
-	# --- Dash dust: one-shot at dash start, at feet ---
-	var is_dashing := dash_timer > 0.0
-	if is_dashing and not _was_dashing and on_floor:
-		_dust_dash.flip_h = dash_direction > 0.0
-		_dust_dash.position = Vector2(-dash_direction * 8.0, feet_y)
-		_dust_dash.visible = true
-		_dust_dash.frame = 0
-		_dust_dash.play("dash")
-	_was_dashing = is_dashing
